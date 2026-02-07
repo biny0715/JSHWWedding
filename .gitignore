@@ -1,0 +1,106 @@
+################################################################################
+# Unity / Rider .gitignore
+# Unity 6 / macOS / Rider / WebGL build outputs
+################################################################################
+
+# --- Unity generated ---
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# --- Asset Store / Package Manager / Cache ---
+# Keep Packages/manifest.json and Packages/packages-lock.json tracked (do NOT ignore Packages/)
+# Uncomment next line only if you know what you're doing:
+# [Pp]ackages/
+
+# UPM cache (usually outside project, but some setups may create it)
+.npm/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+
+# --- Visual Studio / Rider / IDE ---
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userprefs
+*.csproj
+*.unityproj
+*.sln
+*.sdf
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Rider / JetBrains
+*.iml
+*.ipr
+*.iws
+[Rr]ider/
+.ideaModules/
+
+# --- Unity Collab / Plastic (if used) ---
+.collabignore
+.plastic/
+.plasticSCM/
+.plasticworkspace/
+.plastic.workspace
+.plastictmp/
+
+# --- OS / misc ---
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# --- Crash / diagnostics ---
+sysinfo.txt
+*.log
+*.stackdump
+
+# --- Addressables / AssetBundles / Streaming build outputs (optional) ---
+# If you version your bundles/addressables, remove these rules.
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/BuildScriptCache/
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/ShaderCache/
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.json
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.hash
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bundle*
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.manifest
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/ServerData/
+
+# Common AssetBundle output folders (only if you generate into Assets/)
+[Aa]ssets/[Aa]sset[Bb]undles/
+[Aa]ssets/[Bb]undles/
+
+# --- WebGL build outputs (ignore if you export builds from project root) ---
+# If you keep builds in a specific folder and want to version them, remove/adjust.
+WebGLBuild/
+WebGLBuilds/
+BuildWebGL/
+BuildsWebGL/
+
+# --- If you put builds in /docs for GitHub Pages, comment this OUT ---
+# docs/
+
+# --- Unity meta files ---
+# Keep .meta files tracked! (do NOT ignore)
+# *.meta
+
+################################################################################
+# End
+################################################################################
