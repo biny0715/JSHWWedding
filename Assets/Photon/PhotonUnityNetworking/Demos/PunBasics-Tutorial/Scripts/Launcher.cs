@@ -205,20 +205,16 @@ namespace Photon.Pun.Demo.PunBasics
 		/// </remarks>
 		public override void OnJoinedRoom()
 		{
-			LogFeedback("<Color=Green>OnJoinedRoom</Color> with "+PhotonNetwork.CurrentRoom.PlayerCount+" Player(s)");
-			Debug.Log("PUN Basics Tutorial/Launcher: OnJoinedRoom() called by PUN. Now this client is in a room.\nFrom here on, your game would be running.");
-		
-			// #Critical: We only load if we are the first player, else we rely on  PhotonNetwork.AutomaticallySyncScene to sync our instance scene.
+			LogFeedback("<Color=Green>OnJoinedRoom</Color> with " + PhotonNetwork.CurrentRoom.PlayerCount + " Player(s)");
+
+			// 첫 번째 플레이어(마스터)만 씬 로드 → 나머지는 AutomaticallySyncScene으로 따라옴
 			if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
 			{
-				Debug.Log("We load the 'Room for 1' ");
-
-				// #Critical
-				// Load the Room Level. 
-				PhotonNetwork.LoadLevel("PunBasics-Room for 1");
-
+				Debug.Log("We load the 'Wedding' scene");
+				PhotonNetwork.LoadLevel("Wedding");
 			}
 		}
+
 
 		#endregion
 		
