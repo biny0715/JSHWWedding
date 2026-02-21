@@ -1,81 +1,55 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PlayerAnimatorManager.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Networking Demos
-// </copyright>
-// <summary>
-//  Used in PUN Basics Tutorial to deal with the networked player Animator Component controls.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
 using UnityEngine;
+using Photon.Pun;
 
 namespace Photon.Pun.Demo.PunBasics
 {
-	public class PlayerAnimatorManager : MonoBehaviourPun 
-	{
-        #region Private Fields
+    public class PlayerAnimatorManager : MonoBehaviourPun
+    {
+        [SerializeField] private float directionDampTime = 0.25f;
 
-        [SerializeField]
-	    private float directionDampTime = 0.25f;
-        Animator animator;
+        private Animator animator;
+        private CharacterController characterController;
 
-		#endregion
+        void Start()
+        {
+            animator = GetComponent<Animator>();
+            characterController = GetComponent<CharacterController>();
+        }
 
-		#region MonoBehaviour CallBacks
+        void Update()
+        {
+            // 로컬 플레이어만 애니메이션 입력 갱신
+            if (photonView.IsMine == false && PhotonNetwork.IsConnected == true) return;
+            if (!animator) return;
 
-		/// <summary>
-		/// MonoBehaviour method called on GameObject by Unity during initialization phase.
-		/// </summary>
-	    void Start () 
-	    {
-	        animator = GetComponent<Animator>();
-	    }
-	        
-		/// <summary>
-		/// MonoBehaviour method called on GameObject by Unity on every frame.
-		/// </summary>
-	    void Update () 
-	    {
-
-			// Prevent control is connected to Photon and represent the localPlayer
-	        if( photonView.IsMine == false && PhotonNetwork.IsConnected == true )
-	        {
-	            return;
-	        }
-
-			// failSafe is missing Animator component on GameObject
-	        if (!animator)
-	        {
-				return;
-			}
-
-			// deal with Jumping
-            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);			
-
-			// only allow jumping if we are running.
+            // 점프 트리거는 유지(원하면 나중에 모바일 버튼으로 바꿔도 됨)
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
             if (stateInfo.IsName("Base Layer.Run"))
             {
-				// When using trigger parameter
-                if (Input.GetButtonDown("Fire2")) animator.SetTrigger("Jump"); 
-			}
-           
-			// deal with movement
-            float h = Input.GetAxis("Horizontal");
-            float v = Input.GetAxis("Vertical");
-
-			// prevent negative Speed.
-            if( v < 0 )
-            {
-                v = 0;
+                if (Input.GetButtonDown("Fire2"))
+                    animator.SetTrigger("Jump");
             }
 
-			// set the Animator Parameters
-            animator.SetFloat( "Speed", h*h+v*v );
-            animator.SetFloat( "Direction", h, directionDampTime, Time.deltaTime );
-	    }
+            // ✅ 핵심: 입력축이 아니라 "실제 이동"으로 Speed/Direction 계산
+            Vector3 velocity = Vector3.zero;
 
-		#endregion
+            if (characterController != null)
+                velocity = characterController.velocity;
+            else
+            {
+                var rb = GetComponent<Rigidbody>();
+                if (rb != null) velocity = rb.linearVelocity;
+            }
 
-	}
+            // y(점프/중력) 제외한 평면 속도
+            velocity.y = 0f;
+
+            float speed01 = Mathf.Clamp01(velocity.magnitude); // 필요하면 나중에 /maxSpeed로 정규화
+            animator.SetFloat("Speed", speed01 * speed01);
+
+            // Direction은 로컬 공간 x 성분으로 대체(좌/우 회전 블렌딩용)
+            Vector3 localVel = transform.InverseTransformDirection(velocity);
+            animator.SetFloat("Direction", localVel.x, directionDampTime, Time.deltaTime);
+        }
+    }
 }
