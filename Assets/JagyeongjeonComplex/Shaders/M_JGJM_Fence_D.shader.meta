@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: abc00000000013720431614148529709
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Fence_D.shader
+  uploadId: 716846

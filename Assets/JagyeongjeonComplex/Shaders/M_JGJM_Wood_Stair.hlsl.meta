@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 26b672e3e1f80e04098f643b6320a492
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Wood_Stair.hlsl
+  uploadId: 716846

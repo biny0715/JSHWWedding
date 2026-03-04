@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: abc00000000003247720619048733897
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Entrance.shader
+  uploadId: 716846

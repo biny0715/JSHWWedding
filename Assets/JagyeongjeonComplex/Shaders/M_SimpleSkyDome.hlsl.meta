@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0bc51a903f7a67f4b90f947a43fb527f
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_SimpleSkyDome.hlsl
+  uploadId: 716846

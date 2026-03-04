@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5a3cc4c909e40874b9154e1ca3f5fe12
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_Sky_Panning_Clouds2.hlsl
+  uploadId: 716846

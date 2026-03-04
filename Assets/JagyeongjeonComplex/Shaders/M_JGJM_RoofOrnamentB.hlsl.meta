@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6ae22d7fbe91fd047b21104b0d707045
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_RoofOrnamentB.hlsl
+  uploadId: 716846

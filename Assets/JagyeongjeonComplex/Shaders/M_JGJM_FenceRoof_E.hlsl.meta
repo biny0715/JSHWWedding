@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6eb91c673b210d94dabadd6ed4c5b3f1
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_FenceRoof_E.hlsl
+  uploadId: 716846

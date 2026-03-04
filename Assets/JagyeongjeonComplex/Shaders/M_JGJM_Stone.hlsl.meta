@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0ace557cfce11914d9404dc4bc75a662
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Stone.hlsl
+  uploadId: 716846

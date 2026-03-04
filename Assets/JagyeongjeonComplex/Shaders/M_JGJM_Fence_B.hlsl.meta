@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1a4c114430e656b4c82a7db19f89c65c
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Fence_B.hlsl
+  uploadId: 716846

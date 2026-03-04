@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c63f2e2648bce5a479de313227d4ef31
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Door_Assistance.hlsl
+  uploadId: 716846

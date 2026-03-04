@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 394d51498f3608d47aef9037a0ecda1b
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Dori_B_01.hlsl
+  uploadId: 716846

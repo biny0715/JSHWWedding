@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5c4710c0406823b46b149e13a40f51c6
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Bomori.hlsl
+  uploadId: 716846

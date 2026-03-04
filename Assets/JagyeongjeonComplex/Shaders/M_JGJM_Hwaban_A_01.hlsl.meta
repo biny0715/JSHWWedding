@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 31cc576c962610448b3e51fdc4b4fe18
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Hwaban_A_01.hlsl
+  uploadId: 716846

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5f89e5f6be1c8d44196c7648daf8f4ed
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_FoundationStone_B.hlsl
+  uploadId: 716846

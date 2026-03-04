@@ -23,7 +23,19 @@ namespace Photon.Pun.Demo.PunBasics
             cam = Camera.main;
 
             if (!photonView.IsMine)
+            {
                 agent.enabled = false;
+                return;
+            }
+
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            {
+                agent.Warp(hit.position);
+            }
+            else
+            {
+                Debug.LogError("NavMesh 위에 Player가 없음!");
+            }
         }
 
         void Update()

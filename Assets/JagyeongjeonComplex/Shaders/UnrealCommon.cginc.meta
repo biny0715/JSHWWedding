@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2e2be29571ba5924382806d077f84682
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/UnrealCommon.cginc
+  uploadId: 716846

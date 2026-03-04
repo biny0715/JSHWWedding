@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7502115d7ba6fa24ab34707a6e776f33
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Panelboard_A.hlsl
+  uploadId: 716846

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: edea9cb2c6c9e97439ba28938b308037
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Fenceroof_B.hlsl
+  uploadId: 716846

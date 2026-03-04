@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2d83128e22985a74a93fad8143cfb47d
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Wallframe_C.hlsl
+  uploadId: 716846

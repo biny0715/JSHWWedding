@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 571009091d1a2c548bf8d5c85cb42a53
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_RoofTile_B_01.hlsl
+  uploadId: 716846

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a2fc8ede42753ed41a0778440426569b
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_RoofWall_A.hlsl
+  uploadId: 716846

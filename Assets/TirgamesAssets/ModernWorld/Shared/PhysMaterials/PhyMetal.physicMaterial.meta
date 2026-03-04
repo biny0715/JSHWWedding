@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fab9e46b0ea85a14591ad4408f55d3f1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212642
+  packageName: Party Event Props
+  packageVersion: 1.0
+  assetPath: Assets/TirgamesAssets/ModernWorld/Shared/PhysMaterials/PhyMetal.physicMaterial
+  uploadId: 478274

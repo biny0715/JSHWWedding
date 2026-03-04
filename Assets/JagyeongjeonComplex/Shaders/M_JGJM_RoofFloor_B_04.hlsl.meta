@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b6a4537819633a649ad17c30e36b3ff9
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_RoofFloor_B_04.hlsl
+  uploadId: 716846

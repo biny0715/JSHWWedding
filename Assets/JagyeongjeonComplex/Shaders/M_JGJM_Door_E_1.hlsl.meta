@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c59e346da711570449206fb3c3e17fb0
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Door_E_1.hlsl
+  uploadId: 716846

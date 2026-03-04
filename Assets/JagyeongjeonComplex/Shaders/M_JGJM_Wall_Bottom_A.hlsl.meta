@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a1bf6f6849d388f4ea92789a865ada67
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Wall_Bottom_A.hlsl
+  uploadId: 716846

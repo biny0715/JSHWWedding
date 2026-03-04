@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c418f46872803b34e888370b6e0db68a
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Roofgongpo.hlsl
+  uploadId: 716846

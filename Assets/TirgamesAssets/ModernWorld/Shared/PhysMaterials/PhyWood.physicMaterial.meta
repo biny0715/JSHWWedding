@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d3cc32a894dfefd4db0e34bff51c5aac
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212642
+  packageName: Party Event Props
+  packageVersion: 1.0
+  assetPath: Assets/TirgamesAssets/ModernWorld/Shared/PhysMaterials/PhyWood.physicMaterial
+  uploadId: 478274

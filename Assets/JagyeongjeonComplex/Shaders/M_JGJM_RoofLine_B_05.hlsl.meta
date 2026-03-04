@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ac9ef70fa70b9274bbeb81a939a25a27
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_RoofLine_B_05.hlsl
+  uploadId: 716846

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0ca6601b82efc494fad637bf87044f19
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Fence_Door_A.hlsl
+  uploadId: 716846

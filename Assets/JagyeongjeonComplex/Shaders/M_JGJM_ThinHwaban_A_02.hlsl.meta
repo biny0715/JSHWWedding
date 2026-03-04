@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7d2bef7fa0129fd4f8b09705523e0c31
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_ThinHwaban_A_02.hlsl
+  uploadId: 716846

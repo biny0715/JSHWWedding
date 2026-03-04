@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b6e9e217c7874f84fa5c8047c90d4ff0
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Window_A.hlsl
+  uploadId: 716846

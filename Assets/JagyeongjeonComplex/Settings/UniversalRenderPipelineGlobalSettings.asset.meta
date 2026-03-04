@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 13d2ef43e7f267b4b8cfbb1f70141f46
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Settings/UniversalRenderPipelineGlobalSettings.asset
+  uploadId: 716846

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 36dd69651f6009a4693c5209a45467ea
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Woodfloor_A.hlsl
+  uploadId: 716846

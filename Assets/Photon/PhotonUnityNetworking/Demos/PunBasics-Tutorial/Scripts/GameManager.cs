@@ -66,13 +66,18 @@ namespace Photon.Pun.Demo.PunBasics
 			} else {
 
 
-				if (PhotonNetwork.InRoom && PlayerManager.LocalPlayerInstance==null)
+				if (PhotonNetwork.InRoom && PlayerManager.LocalPlayerInstance == null)
 				{
-				    Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
+					Vector3 spawnPos = GetSpawnPosition();
 
-					// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
-					PhotonNetwork.Instantiate(this.playerPrefab.name, SpawnPosition, Quaternion.identity, 0);
-				}else{
+					PhotonNetwork.Instantiate(
+						this.playerPrefab.name,
+						spawnPos,
+						Quaternion.identity,
+						0
+					);
+				}
+				else{
 
 					Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
 				}
@@ -100,17 +105,37 @@ namespace Photon.Pun.Demo.PunBasics
 
         public override void OnJoinedRoom()
         {
-            // Note: it is possible that this monobehaviour is not created (or active) when OnJoinedRoom happens
-            // due to that the Start() method also checks if the local player character was network instantiated!
-            if (PlayerManager.LocalPlayerInstance == null)
-            {
-                Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
+	        if (PlayerManager.LocalPlayerInstance == null)
+	        {
+		        Debug.LogFormat("Spawning LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
 
-                // we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
-                PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0);
-            }
+		        Vector3 spawnPos = GetSpawnPosition();
+
+		        PhotonNetwork.Instantiate(
+			        this.playerPrefab.name,
+			        spawnPos,
+			        Quaternion.identity,
+			        0
+		        );
+	        }
         }
+        private Vector3 GetSpawnPosition()
+        {
+	        Vector3 basePos = SpawnPosition;
 
+	        // 플레이어 수에 따라 살짝 분산
+	        float offset = PhotonNetwork.LocalPlayer.ActorNumber * 1.5f;
+
+	        Vector3 spawnPos = basePos + new Vector3(offset, 0f, offset);
+
+	        // NavMesh 위로 스냅
+	        if (UnityEngine.AI.NavMesh.SamplePosition(spawnPos, out UnityEngine.AI.NavMeshHit hit, 5f, UnityEngine.AI.NavMesh.AllAreas))
+	        {
+		        return hit.position;
+	        }
+
+	        return basePos;
+        }
         /// <summary>
         /// Called when a Photon Player got connected. We need to then load a bigger scene.
         /// </summary>

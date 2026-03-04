@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: bd67363062d726f46aaed4aa87987e3e
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Entrance.hlsl
+  uploadId: 716846

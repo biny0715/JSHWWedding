@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 168d8ac2c2cd9d848b5e5fc5604b52d7
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Iikgong.hlsl
+  uploadId: 716846

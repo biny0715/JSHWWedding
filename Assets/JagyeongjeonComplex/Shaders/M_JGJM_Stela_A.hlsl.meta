@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d2e62d50de09eb049be1bd002170bb31
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Stela_A.hlsl
+  uploadId: 716846

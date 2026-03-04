@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: abc00000000003376222202896045838
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_FenceRoof_Chimney.shader
+  uploadId: 716846

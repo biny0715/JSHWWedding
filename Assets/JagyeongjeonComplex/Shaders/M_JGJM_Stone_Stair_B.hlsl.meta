@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f4ae214a62948bc4791cab13b8c8f607
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Stone_Stair_B.hlsl
+  uploadId: 716846

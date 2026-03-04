@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7d5a09e981dceeb498f0ad4a72536f05
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Changbang_B_01.hlsl
+  uploadId: 716846

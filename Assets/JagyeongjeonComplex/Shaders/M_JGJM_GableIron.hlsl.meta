@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2381c5b5512819b41b0296bf20570824
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_GableIron.hlsl
+  uploadId: 716846

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 575e5cb031694ac4299fb26a42919b1f
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305173
+  packageName: KHS-Jagyeongjeon, Gyeongbokgung
+  packageVersion: 1.0
+  assetPath: Assets/JagyeongjeonComplex/Shaders/M_JGJM_Booyeon.hlsl
+  uploadId: 716846
