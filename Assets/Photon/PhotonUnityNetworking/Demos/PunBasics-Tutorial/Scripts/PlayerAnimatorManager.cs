@@ -5,32 +5,48 @@ using System.Collections.Generic;
 
 namespace Photon.Pun.Demo.PunBasics
 {
-    public class PlayerAnimatorManager : MonoBehaviourPun
+    public class PlayerAnimatorManager : MonoBehaviourPun, IPunObservable
     {
         private List<Animator> animators = new List<Animator>();
         private NavMeshAgent agent;
 
-        void Start()
+        private float syncedSpeed;
+
+        void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
-
-            // 모든 자식 Animator 가져오기
-            Animator[] foundAnimators = GetComponentsInChildren<Animator>();
-
-            animators.AddRange(foundAnimators);
+            animators.AddRange(GetComponentsInChildren<Animator>());
         }
 
         void Update()
         {
-            if (!photonView.IsMine) return;
+            float speed;
 
-            float speed = agent.velocity.magnitude;
-            float normalizedSpeed = Mathf.Clamp01(speed / agent.speed);
+            if (photonView.IsMine)
+            {
+                speed = agent.velocity.magnitude;
+                syncedSpeed = speed;
+            }
+            else
+            {
+                speed = syncedSpeed;
+            }
 
-            // 모든 Animator에 Speed 전달
             foreach (Animator anim in animators)
             {
-                anim.SetFloat("Speed", normalizedSpeed);
+                anim.SetFloat("Speed", speed);
+            }
+        }
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(syncedSpeed);
+            }
+            else
+            {
+                syncedSpeed = (float)stream.ReceiveNext();
             }
         }
     }
