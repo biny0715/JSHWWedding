@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b7f4329458cdb464796191393167d4f9
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 312036
+  packageName: 'GASTRO: Modular Characters Collection Pack by yaro.team'
+  packageVersion: 1.0.1
+  assetPath: Assets/yaro.team/GASTRO_Character_Collection/Scripts/Character_Controller/ThirdPersonCamera.cs
+  uploadId: 830254

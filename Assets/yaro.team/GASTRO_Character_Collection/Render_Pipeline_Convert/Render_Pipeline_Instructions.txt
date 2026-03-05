@@ -1,0 +1,14 @@
+The models use URP shaders by default.
+If you work in another render pipeline, use one of the included .unitypackage files to automatically convert all materials to the correct shader type.
+
+Available packages (located in Assets/Render_Pipeline_Convert/):
+- "URP_Materials_source" — converts all materials to URP.
+- "HDRP_Materials_source" — converts all materials to HDRP.
+- "Built-In_Materials_source" — converts all materials to Built-In.
+
+How to use:
+1. Open your project in Unity.
+2. Double-click the required .unitypackage.
+3. Press Import.
+
+After import, all materials in the project will use shaders for the selected pipeline.

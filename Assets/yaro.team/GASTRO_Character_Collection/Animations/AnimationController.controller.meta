@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d16a1e98254f09443afa6295c1c9948e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 312036
+  packageName: 'GASTRO: Modular Characters Collection Pack by yaro.team'
+  packageVersion: 1.0.1
+  assetPath: Assets/yaro.team/GASTRO_Character_Collection/Animations/AnimationController.controller
+  uploadId: 830254
