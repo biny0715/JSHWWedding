@@ -1,27 +1,37 @@
 using UnityEngine;
 using Photon.Pun;
+using UnityEngine.AI;
+using System.Collections.Generic;
 
 namespace Photon.Pun.Demo.PunBasics
 {
     public class PlayerAnimatorManager : MonoBehaviourPun
     {
-        [SerializeField] private float directionDampTime = 0.25f;
-
-        Animator animator;
-        Vector3 lastPosition;
+        private List<Animator> animators = new List<Animator>();
+        private NavMeshAgent agent;
 
         void Start()
         {
-            animator = GetComponent<Animator>();
-            lastPosition = transform.position;
+            agent = GetComponent<NavMeshAgent>();
+
+            // 모든 자식 Animator 가져오기
+            Animator[] foundAnimators = GetComponentsInChildren<Animator>();
+
+            animators.AddRange(foundAnimators);
         }
 
         void Update()
         {
-            float speed = (transform.position - lastPosition).magnitude / Time.deltaTime;
-            animator.SetFloat("Speed", speed);
+            if (!photonView.IsMine) return;
 
-            lastPosition = transform.position;
+            float speed = agent.velocity.magnitude;
+            float normalizedSpeed = Mathf.Clamp01(speed / agent.speed);
+
+            // 모든 Animator에 Speed 전달
+            foreach (Animator anim in animators)
+            {
+                anim.SetFloat("Speed", normalizedSpeed);
+            }
         }
     }
 }
