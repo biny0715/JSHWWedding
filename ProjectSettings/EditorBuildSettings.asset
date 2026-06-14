@@ -10,7 +10,7 @@ EditorBuildSettings:
     guid: fa5f786dc6b4a4be989ebbcd0aabe38b
   - enabled: 1
     path: Assets/Stylized Water 3/Scenes/Wedding.unity
-    guid: 016c7b3f06cc84174bce34e63cd49ccc
+    guid: 8dbac45d81d6045a682d8bb394a5dc49
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

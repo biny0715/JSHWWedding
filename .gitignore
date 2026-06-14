@@ -111,3 +111,10 @@ MCPForUnity.*.csproj
 ################################################################################
 # End
 ################################################################################
+
+# Editor MCP server (do not commit ~105MB python + nested .git)
+/Assets/StreamingAssets/realvirtual-MCP/
+/Assets/StreamingAssets/realvirtual-MCP.meta
+# MCP screenshots / reports
+/.screenshots/
+/WebGL_UnusedReport.txt
