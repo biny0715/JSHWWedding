@@ -8,6 +8,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
@@ -39,17 +40,26 @@ namespace JSHWWedding
         public string PlayerName { get; private set; }
 
         private bool entered;   // 입장 신호 중복 방지
+        private static WebLobbyBridge instance;  // 씬 전환 후 유지되는 단일 인스턴스
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         // 유니티 → 웹: "로비가 이름 받을 준비 됐다" 신호 (jslib)
         [DllImport("__Internal")] private static extern void WeddingLobbyReady();
         // 유니티 → 웹: "입장 처리 시작했다(접속 중)" 신호 (jslib)
         [DllImport("__Internal")] private static extern void WeddingEntering();
+        // 유니티 → 웹: "Wedding(예식장) 3D 씬 로드 완료" 신호 (jslib)
+        [DllImport("__Internal")] private static extern void WeddingSceneReady();
 #endif
 
         private void Awake()
         {
-            // 참조 자동 보강 (인스펙터에서 비워둬도 동작하도록)
+            // Wedding 씬 로드 완료를 웹에 알리려면 씬 전환 후에도 살아있어야 한다.
+            if (instance != null && instance != this) { Destroy(gameObject); return; }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
+            // 참조 자동 보강 (인스펙터에서 비워두면 런타임 탐색)
             if (launcher == null) launcher = FindFirstObjectByType<Launcher>();
             if (nameInputField == null) nameInputField = FindFirstObjectByType<TMP_InputField>(FindObjectsInactive.Include);
             if (connectButton == null && nameInputField != null)
@@ -81,6 +91,23 @@ namespace JSHWWedding
 #else
             Debug.Log("[WebLobbyBridge] 에디터 모드: Name InputField + Connect 버튼으로 테스트하세요.");
 #endif
+        }
+
+        // 예식장(Wedding) 씬 로드 완료 → 웹에 알려 로딩/커튼을 걷게 한다.
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name != "Wedding") return;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            WeddingSceneReady();
+#else
+            Debug.Log("[WebLobbyBridge] Wedding 씬 로드됨 (에디터: WeddingSceneReady 생략)");
+#endif
+        }
+
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            if (instance == this) instance = null;
         }
 
         // ===== 웹(JS) → 유니티 : SendMessage 로 호출되는 진입점들 =====

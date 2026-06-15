@@ -20,6 +20,15 @@ mergeInto(LibraryManager.library, {
         window.OnWeddingEntering();
       }
     } catch (e) { console.error("WeddingEntering error:", e); }
+  },
+
+  // Wedding(예식장) 3D 씬 로드 완료 — 웹이 로딩/커튼을 걷고 3D를 노출
+  WeddingSceneReady: function () {
+    try {
+      if (typeof window !== "undefined" && typeof window.OnWeddingSceneReady === "function") {
+        window.OnWeddingSceneReady();
+      }
+    } catch (e) { console.error("WeddingSceneReady error:", e); }
   }
 
 });
