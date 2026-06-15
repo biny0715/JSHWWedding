@@ -6,6 +6,7 @@
 using UnityEngine;
 using TMPro;
 using Photon.Pun;
+using Unity.Cinemachine;
 
 namespace JSHWWedding
 {
@@ -45,33 +46,29 @@ namespace JSHWWedding
 
             var rt = tmp.rectTransform;
             rt.sizeDelta = new Vector2(8f, 2f);
-
-            cam = ResolveCamera();
         }
 
         private void LateUpdate()
         {
             if (tagTf == null) return;
-            if (cam == null) cam = ResolveCamera();
+            if (cam == null) cam = ResolveCamera();   // 한 번 잡으면 캐시
             if (cam == null) return;
 
-            // 캐릭터(부모) 회전과 무관하게 항상 카메라를 바라보고 똑바로 선 빌보드
-            Vector3 dir = tagTf.position - cam.transform.position;
-            if (dir.sqrMagnitude > 0.0001f)
-                tagTf.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            // 카메라 평면과 나란히 → 캐릭터 회전과 무관하게 항상 카메라 정면을 향함(읽기 좋음)
+            tagTf.rotation = cam.transform.rotation;
         }
 
-        // Camera.main 이 null 인 경우(태그/타이밍 이슈)까지 대비해 렌더 카메라를 확보
+        // 씬에 카메라가 여러 개(물 반사 등, 태그도 복제될 수 있음)라 실제 게임플레이
+        // 카메라(CinemachineBrain 부착)를 우선 선택. 그 외엔 Camera.main 폴백.
         private static Camera ResolveCamera()
         {
-            Camera c = Camera.main;
-            if (c == null)
+            var brain = FindFirstObjectByType<CinemachineBrain>();
+            if (brain != null)
             {
-                var go = GameObject.FindWithTag("MainCamera");
-                if (go != null) c = go.GetComponent<Camera>();
+                var bc = brain.GetComponent<Camera>();
+                if (bc != null) return bc;
             }
-            if (c == null) c = FindFirstObjectByType<Camera>();
-            return c;
+            return Camera.main;
         }
     }
 }
