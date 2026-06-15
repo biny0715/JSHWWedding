@@ -6,7 +6,6 @@
 using UnityEngine;
 using TMPro;
 using Photon.Pun;
-using Unity.Cinemachine;
 
 namespace JSHWWedding
 {
@@ -58,16 +57,16 @@ namespace JSHWWedding
             tagTf.rotation = cam.transform.rotation;
         }
 
-        // 씬에 카메라가 여러 개(물 반사 등, 태그도 복제될 수 있음)라 실제 게임플레이
-        // 카메라(CinemachineBrain 부착)를 우선 선택. 그 외엔 Camera.main 폴백.
+        // 씬에 카메라가 여러 개(물 반사 등, 태그까지 복제될 수 있음).
+        // 반사 카메라는 RenderTexture 에 그리므로, 화면에 직접 그리는(targetTexture==null)
+        // 카메라 중 MainCamera 태그를 우선 선택해 실제 게임플레이 카메라를 잡는다.
         private static Camera ResolveCamera()
         {
-            var brain = FindFirstObjectByType<CinemachineBrain>();
-            if (brain != null)
-            {
-                var bc = brain.GetComponent<Camera>();
-                if (bc != null) return bc;
-            }
+            var all = Camera.allCameras;
+            foreach (var c in all)
+                if (c != null && c.targetTexture == null && c.CompareTag("MainCamera")) return c;
+            foreach (var c in all)
+                if (c != null && c.targetTexture == null) return c;
             return Camera.main;
         }
     }
