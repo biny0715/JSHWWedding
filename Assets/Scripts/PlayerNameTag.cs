@@ -46,15 +46,32 @@ namespace JSHWWedding
             var rt = tmp.rectTransform;
             rt.sizeDelta = new Vector2(8f, 2f);
 
-            cam = Camera.main;
+            cam = ResolveCamera();
         }
 
         private void LateUpdate()
         {
             if (tagTf == null) return;
-            if (cam == null) { cam = Camera.main; if (cam == null) return; }
-            // 카메라와 같은 방향을 향하게 → 항상 읽기 좋은 빌보드
-            tagTf.rotation = cam.transform.rotation;
+            if (cam == null) cam = ResolveCamera();
+            if (cam == null) return;
+
+            // 캐릭터(부모) 회전과 무관하게 항상 카메라를 바라보고 똑바로 선 빌보드
+            Vector3 dir = tagTf.position - cam.transform.position;
+            if (dir.sqrMagnitude > 0.0001f)
+                tagTf.rotation = Quaternion.LookRotation(dir, Vector3.up);
+        }
+
+        // Camera.main 이 null 인 경우(태그/타이밍 이슈)까지 대비해 렌더 카메라를 확보
+        private static Camera ResolveCamera()
+        {
+            Camera c = Camera.main;
+            if (c == null)
+            {
+                var go = GameObject.FindWithTag("MainCamera");
+                if (go != null) c = go.GetComponent<Camera>();
+            }
+            if (c == null) c = FindFirstObjectByType<Camera>();
+            return c;
         }
     }
 }
