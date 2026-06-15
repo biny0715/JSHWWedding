@@ -28,6 +28,8 @@ namespace JSHWWedding
         [SerializeField] private Launcher launcher;
         [SerializeField] private TMP_InputField nameInputField;   // 에디터 테스트용 입력칸 (TMP)
         [SerializeField] private Button connectButton;            // 에디터 테스트용 버튼
+        [Tooltip("WebGL 에서 숨길 유니티 자체 로비 UI(Canvas). 웹은 HTML 오버레이가 로비 담당")]
+        [SerializeField] private GameObject lobbyUICanvas;
 
         [Header("설정")]
         [Tooltip("이름이 비어있을 때 사용할 기본 이름")]
@@ -55,6 +57,11 @@ namespace JSHWWedding
                 // 가장 가까운 버튼을 찾는다 (없으면 무시)
                 connectButton = FindFirstObjectByType<Button>(FindObjectsInactive.Include);
             }
+            if (lobbyUICanvas == null)
+            {
+                var c = GameObject.Find("Canvas");
+                if (c != null) lobbyUICanvas = c;
+            }
         }
 
         private void Start()
@@ -66,8 +73,10 @@ namespace JSHWWedding
                 connectButton.onClick.AddListener(OnClickConnect);
             }
 
-            // WebGL: 웹에게 "준비 완료" 를 알린다 → 웹이 이름/입장을 SendMessage 로 보냄
+            // WebGL: 유니티 자체 로비 UI 를 숨긴다(웹 HTML 오버레이가 로비 담당 → 이중 UI 방지)
+            //        그리고 웹에 "준비 완료" 를 알려 이름/입장 SendMessage 를 받는다.
 #if UNITY_WEBGL && !UNITY_EDITOR
+            if (lobbyUICanvas != null) lobbyUICanvas.SetActive(false);
             WeddingLobbyReady();
 #else
             Debug.Log("[WebLobbyBridge] 에디터 모드: Name InputField + Connect 버튼으로 테스트하세요.");
