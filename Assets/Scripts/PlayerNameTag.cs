@@ -1,7 +1,9 @@
 // PlayerNameTag.cs
-// 플레이어 머리 위 이름표. 자식(child)으로 두어 플레이어와 함께 생성/파괴되고 위치는 자동으로 따라감.
-// 매 프레임 회전만 카메라를 향하게 갱신(부모 회전 무시) → 캐릭터가 돌아도 항상 카메라 정면.
-// 한글은 TMP 폴백(메이플스토리 SDF). Player_2 프리팹 루트에 부착.
+// 플레이어 머리 위 이름표(월드 TextMeshPro 빌보드). 캐릭터 Animator의 Optimize Game Objects
+// 영향을 피하려고 자식이 아닌 독립 오브젝트로 두고 위치/회전을 매 프레임 직접 갱신한다.
+// ★ 주의: AddComponent<TextMeshPro>() 가 Transform 을 RectTransform 으로 "교체"하므로
+//   그 전에 잡은 transform 참조는 무효가 된다. 반드시 AddComponent 이후에 transform 을 캐시할 것.
+// 한글은 TMP Settings 폴백(메이플스토리 SDF)으로 렌더. Player_2 프리팹 루트에 부착.
 
 using UnityEngine;
 using TMPro;
@@ -29,11 +31,10 @@ namespace JSHWWedding
             if (string.IsNullOrEmpty(playerName)) playerName = "하객";
 
             var go = new GameObject("NameTag");
-            tagTf = go.transform;
-            tagTf.SetParent(transform, false);
-            tagTf.localPosition = new Vector3(0f, heightOffset, 0f);
+            var tmp = go.AddComponent<TextMeshPro>();   // 이 호출이 Transform→RectTransform 교체
+            tagTf = go.transform;                        // ★ 교체 이후에 캐시
+            tagTf.position = transform.position + Vector3.up * heightOffset;
 
-            var tmp = go.AddComponent<TextMeshPro>();
             tmp.text = playerName;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.fontSize = fontSize;
@@ -47,9 +48,15 @@ namespace JSHWWedding
         private void LateUpdate()
         {
             if (tagTf == null) return;
+            tagTf.position = transform.position + Vector3.up * heightOffset;  // 머리 위 따라가기
             if (cam == null) cam = Camera.main;
             if (cam == null) return;
-            tagTf.rotation = cam.transform.rotation;   // 항상 카메라 정면(빌보드)
+            tagTf.rotation = cam.transform.rotation;                          // 항상 카메라 정면
+        }
+
+        private void OnDestroy()
+        {
+            if (tagTf != null) Destroy(tagTf.gameObject);   // 독립 오브젝트라 직접 정리
         }
     }
 }
