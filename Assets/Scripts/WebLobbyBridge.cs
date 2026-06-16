@@ -53,6 +53,13 @@ namespace JSHWWedding
 
         private void Awake()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // 유니티 WebGL이 페이지 전체 키보드 입력을 가로채면 HTML 입력칸(이름)에
+            // 모바일 키보드로 타이핑이 안 됨(붙여넣기만 됨). 캔버스가 포커스됐을 때만
+            // 캡처하도록 꺼서 HTML <input> 이 키 이벤트를 받게 한다.
+            WebGLInput.captureAllKeyboardInput = false;
+#endif
+
             // Wedding 씬 로드 완료를 웹에 알리려면 씬 전환 후에도 살아있어야 한다.
             if (instance != null && instance != this) { Destroy(gameObject); return; }
             instance = this;
@@ -133,6 +140,14 @@ namespace JSHWWedding
         {
             SetPlayerName(name);
             Enter(PlayerName);
+        }
+
+        /// <summary>웹 오버레이(방명록/사진앨범)가 닫혔다 → 플레이어 이동 잠금 해제.
+        /// 웹: unityInstance.SendMessage("WebBridge","OnVenueOverlayClosed")</summary>
+        public void OnVenueOverlayClosed()
+        {
+            UIInputLock.Locked = false;
+            Debug.Log("[WebLobbyBridge] 오버레이 닫힘 → 이동 잠금 해제");
         }
 
         // ===== 에디터 테스트용 : Connect 버튼 =====

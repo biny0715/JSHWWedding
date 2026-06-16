@@ -43,6 +43,17 @@ namespace Photon.Pun.Demo.PunBasics
             if (!photonView.IsMine)
                 return;
 
+#if UNITY_EDITOR
+            // 에디터 테스트: 웹 닫힘 콜백이 없으니 Esc 로 잠금 해제
+            if (UIInputLock.Locked && Input.GetKeyDown(KeyCode.Escape)) UIInputLock.Locked = false;
+#endif
+            // 방명록/사진앨범 등 웹 창이 열려있으면 이동 금지 + 진행 중 경로 정지
+            if (UIInputLock.Locked)
+            {
+                if (agent.enabled && agent.hasPath) agent.ResetPath();
+                return;
+            }
+
             if (TryGetPointerDown(out Vector2 screenPos))
             {
                 Ray ray = cam.ScreenPointToRay(screenPos);

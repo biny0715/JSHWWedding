@@ -29,6 +29,25 @@ mergeInto(LibraryManager.library, {
         window.OnWeddingSceneReady();
       }
     } catch (e) { console.error("WeddingSceneReady error:", e); }
+  },
+
+  // FlowerDecoZone 버튼 → 웹 방명록 창 열기 (이름 자동입력 + 수정불가)
+  OpenWeddingGuestbook: function (namePtr) {
+    try {
+      var name = UTF8ToString(namePtr);
+      if (typeof window !== "undefined" && typeof window.OnOpenGuestbook === "function") {
+        window.OnOpenGuestbook(name);
+      }
+    } catch (e) { console.error("OpenWeddingGuestbook error:", e); }
+  },
+
+  // PictureZone 버튼 → 웹 사진 앨범 창 열기
+  OpenWeddingAlbum: function () {
+    try {
+      if (typeof window !== "undefined" && typeof window.OnOpenAlbum === "function") {
+        window.OnOpenAlbum();
+      }
+    } catch (e) { console.error("OpenWeddingAlbum error:", e); }
   }
 
 });
