@@ -42,6 +42,7 @@ namespace JSHWWedding
             public Renderer[] rends;
             public Material[][] orig;
             public Material fadeMat;
+            public Bounds bounds;   // 건물 전체 합산 AABB (정적, Start 1회 계산)
             public float a = 1f;
             public bool faded;
         }
@@ -65,7 +66,13 @@ namespace JSHWWedding
                 if (rends.Length == 0) continue;
                 var b = new Bld { rends = rends };
                 b.orig = new Material[rends.Length][];
-                for (int i = 0; i < rends.Length; i++) b.orig[i] = rends[i].sharedMaterials;
+                var bb = rends[0].bounds;
+                for (int i = 0; i < rends.Length; i++)
+                {
+                    b.orig[i] = rends[i].sharedMaterials;
+                    bb.Encapsulate(rends[i].bounds);
+                }
+                b.bounds = bb;
                 b.fadeMat = MakeTransparent(lit, fadeColor);
                 blds.Add(b);
             }
@@ -95,24 +102,33 @@ namespace JSHWWedding
             {
                 var b = blds[i];
 
-                int occluded = 0;
-                for (int s = 0; s < total; s++)
+                // 캐릭터가 이 건물 안/입구에 서 있으면(건물 bounds 안) 가린 게 아니라 "들어가 있는" 것 → fade 안 함
+                bool occ;
+                if (b.bounds.Contains(player.position))
                 {
-                    Vector3 d = samples[s] - from;
-                    float dist = d.magnitude;
-                    var ray = new Ray(from, d / dist);
-                    float limit = dist - margin;
-
-                    var rs = b.rends;
-                    for (int r = 0; r < rs.Length; r++)
+                    occ = false;
+                }
+                else
+                {
+                    int occluded = 0;
+                    for (int s = 0; s < total; s++)
                     {
-                        var ren = rs[r];
-                        if (ren == null) continue;
-                        if (ren.bounds.IntersectRay(ray, out float hd) && hd < limit) { occluded++; break; }
+                        Vector3 d = samples[s] - from;
+                        float dist = d.magnitude;
+                        var ray = new Ray(from, d / dist);
+                        float limit = dist - margin;
+
+                        var rs = b.rends;
+                        for (int r = 0; r < rs.Length; r++)
+                        {
+                            var ren = rs[r];
+                            if (ren == null) continue;
+                            if (ren.bounds.IntersectRay(ray, out float hd) && hd < limit) { occluded++; break; }
+                        }
                     }
+                    occ = total > 0 && (float)occluded / total >= occludeThreshold;
                 }
 
-                bool occ = total > 0 && (float)occluded / total >= occludeThreshold;
                 float target = occ ? fadedAlpha : 1f;
                 b.a = Mathf.MoveTowards(b.a, target, fadeSpeed * Time.deltaTime);
 
