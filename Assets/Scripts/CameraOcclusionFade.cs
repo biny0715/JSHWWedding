@@ -102,9 +102,10 @@ namespace JSHWWedding
             {
                 var b = blds[i];
 
-                // 캐릭터가 이 건물 안/입구에 서 있으면(건물 bounds 안) 가린 게 아니라 "들어가 있는" 것 → fade 안 함
+                // 카메라는 건물 "밖" 인데 캐릭터만 건물 bounds "안" → 밖에서 입구/앞의 캐릭터가 보이는 상황
+                //   (이때만 fade 제외). 카메라가 건물 안이면 캐릭터가 그 건물에 덮인 것이므로 정상 판정 → fade.
                 bool occ;
-                if (b.bounds.Contains(player.position))
+                if (!b.bounds.Contains(from) && b.bounds.Contains(player.position))
                 {
                     occ = false;
                 }
