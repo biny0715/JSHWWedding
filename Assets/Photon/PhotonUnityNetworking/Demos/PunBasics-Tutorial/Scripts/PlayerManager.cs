@@ -45,7 +45,12 @@ namespace Photon.Pun.Demo.PunBasics
 
         void SetupCamera()
         {
-            CinemachineCamera cam = FindFirstObjectByType<CinemachineCamera>();
+            // 인트로 연출용 IntroCam 도 CinemachineCamera 라서, 게임플레이 카메라("CinemachineCamera")를 이름으로 특정.
+            CinemachineCamera cam = null;
+            var all = FindObjectsByType<CinemachineCamera>(FindObjectsSortMode.None);
+            foreach (var c in all)
+                if (c.name == "CinemachineCamera") { cam = c; break; }
+            if (cam == null && all.Length > 0) cam = all[0];
 
             if (cam != null)
             {
