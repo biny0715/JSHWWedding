@@ -1,9 +1,9 @@
 // CameraOcclusionFade.cs
 // 카메라와 플레이어 사이에 든 건물을 반투명(fade) 처리. 카메라는 당기지 않음(과확대 없음).
-// 판정: 플레이어 실루엣(머리~발 × 좌우 폭)을 여러 점으로 샘플링하고, 카메라->각 점 선분이
-//        건물 조각 렌더러 bounds 를 지나면 그 점이 "가려짐". 가려진 점 비율이 occludeThreshold
-//        이상일 때만 그 건물을 fade. (가장자리만 살짝 걸치면 비율이 낮아 fade 안 함.)
-//   - Bounds.IntersectRay 는 카메라가 건물 안에 있어도(원점 내부) 감지된다.
+// 판정: 플레이어 실루엣(머리~발 × 좌우)을 여러 점으로 샘플링하고, 카메라->각 점을 "실제 건물 메시"
+//        (BuildingMeshOccluderBaker 가 붙인 MeshCollider)에 Physics.Raycast. 가려진 점 비율이
+//        occludeThreshold 이상인 건물만 fade. AABB 근사가 아니라 실제 메시라 오목/겹친 건물도 정확.
+//   - 콜라이더는 Default 레이어. 같은 레이어의 비건물(나무/플레이어)에 맞아도 건물로 매핑 안 되면 무시.
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -21,15 +21,15 @@ namespace JSHWWedding
 
         [Header("가림 판정")]
         [Tooltip("이 비율 이상의 몸 샘플점이 가려져야 fade (낮을수록 민감)")]
-        [Range(0f, 1f)] public float occludeThreshold = 0.5f;
+        [Range(0f, 1f)] public float occludeThreshold = 0.7f;
         [Tooltip("샘플할 캐릭터 키")]
         public float bodyHeight = 1.7f;
         [Tooltip("샘플할 캐릭터 폭")]
         public float bodyWidth = 0.6f;
-        [Tooltip("이만큼 가까운(앞쪽) 조각은 가림으로 안 침(벽에 붙어있을 때 오탐 방지)")]
+        [Tooltip("이만큼 가까운(앞쪽) 히트는 무시(카메라 바로 앞 자기충돌 방지)")]
+        public float nearSkip = 0.1f;
+        [Tooltip("플레이어에 이만큼 못 미치는 지점까지만 검사(발밑 바닥 오탐 방지)")]
         public float margin = 0.6f;
-        [Tooltip("거리 이내(카메라를 감싸거나 바로 앞) 조각 AABB 무시 — 오목 건물 안뜰/지붕 오탐 방지")]
-        public float nearSkip = 0.3f;
 
         // 몸 세로/가로 샘플 위치 비율
         static readonly float[] HEIGHTS = { 0.12f, 0.4f, 0.68f, 0.95f };
@@ -38,13 +38,17 @@ namespace JSHWWedding
         Camera cam;
         Transform player;
         Vector3[] samples;
+        int occluderMask;
+        readonly RaycastHit[] hitBuf = new RaycastHit[32];
+        int[] occCount;
+        bool[] sampleHit;
 
         class Bld
         {
+            public Transform root;
             public Renderer[] rends;
             public Material[][] orig;
             public Material fadeMat;
-            public Bounds bounds;   // 건물 전체 합산 AABB (정적, Start 1회 계산)
             public float a = 1f;
             public bool faded;
         }
@@ -66,72 +70,63 @@ namespace JSHWWedding
             {
                 var rends = child.GetComponentsInChildren<Renderer>(true);
                 if (rends.Length == 0) continue;
-                var b = new Bld { rends = rends };
+                var b = new Bld { root = child, rends = rends };
                 b.orig = new Material[rends.Length][];
-                var bb = rends[0].bounds;
-                for (int i = 0; i < rends.Length; i++)
-                {
-                    b.orig[i] = rends[i].sharedMaterials;
-                    bb.Encapsulate(rends[i].bounds);
-                }
-                b.bounds = bb;
+                for (int i = 0; i < rends.Length; i++) b.orig[i] = rends[i].sharedMaterials;
                 b.fadeMat = MakeTransparent(lit, fadeColor);
                 blds.Add(b);
             }
+
+            occCount = new int[blds.Count];
+            sampleHit = new bool[blds.Count];
+            // 건물 조각이 올라가 있는 레이어로 마스크 구성(보통 Default)
+            occluderMask = blds.Count > 0 ? (1 << blds[0].rends[0].gameObject.layer) : ~0;
         }
 
         void LateUpdate()
         {
             if (cam == null) cam = Camera.main;
             if (player == null) player = FindPlayer();
-            if (cam == null || player == null) return;
+            if (cam == null || player == null || blds.Count == 0) return;
 
             Vector3 from = cam.transform.position;
             Vector3 basePos = player.position;
 
-            // 카메라->플레이어 시선에 수직인 가로축(수평)
             Vector3 right = Vector3.Cross(basePos - from, Vector3.up);
             right = right.sqrMagnitude < 1e-4f ? cam.transform.right : right.normalized;
 
-            // 몸 샘플점 생성 (머리~발 × 좌우)
             int n = 0;
             for (int h = 0; h < HEIGHTS.Length; h++)
                 for (int w = 0; w < WIDTHS.Length; w++)
                     samples[n++] = basePos + Vector3.up * (bodyHeight * HEIGHTS[h]) + right * (bodyWidth * 0.5f * WIDTHS[w]);
             int total = n;
 
+            for (int i = 0; i < occCount.Length; i++) occCount[i] = 0;
+
+            for (int s = 0; s < total; s++)
+            {
+                Vector3 d = samples[s] - from;
+                float dist = d.magnitude;
+                float maxd = dist - margin;
+                if (maxd <= nearSkip) continue;
+
+                int hits = Physics.RaycastNonAlloc(new Ray(from, d / dist), hitBuf, maxd, occluderMask, QueryTriggerInteraction.Collide);
+                if (hits == 0) continue;
+
+                for (int i = 0; i < sampleHit.Length; i++) sampleHit[i] = false;
+                for (int h = 0; h < hits; h++)
+                {
+                    if (hitBuf[h].distance <= nearSkip) continue;
+                    int bi = ColliderToBuilding(hitBuf[h].collider);
+                    if (bi >= 0) sampleHit[bi] = true;
+                }
+                for (int i = 0; i < sampleHit.Length; i++) if (sampleHit[i]) occCount[i]++;
+            }
+
             for (int i = 0; i < blds.Count; i++)
             {
                 var b = blds[i];
-
-                // 카메라는 건물 "밖" 인데 캐릭터만 건물 bounds "안" → 밖에서 입구/앞의 캐릭터가 보이는 상황
-                //   (이때만 fade 제외). 카메라가 건물 안이면 캐릭터가 그 건물에 덮인 것이므로 정상 판정 → fade.
-                bool occ;
-                if (!b.bounds.Contains(from) && b.bounds.Contains(player.position))
-                {
-                    occ = false;
-                }
-                else
-                {
-                    int occluded = 0;
-                    for (int s = 0; s < total; s++)
-                    {
-                        Vector3 d = samples[s] - from;
-                        float dist = d.magnitude;
-                        var ray = new Ray(from, d / dist);
-                        float limit = dist - margin;
-
-                        var rs = b.rends;
-                        for (int r = 0; r < rs.Length; r++)
-                        {
-                            var ren = rs[r];
-                            if (ren == null) continue;
-                            if (ren.bounds.IntersectRay(ray, out float hd) && hd > nearSkip && hd < limit) { occluded++; break; }
-                        }
-                    }
-                    occ = total > 0 && (float)occluded / total >= occludeThreshold;
-                }
-
+                bool occ = total > 0 && (float)occCount[i] / total >= occludeThreshold;
                 float target = occ ? fadedAlpha : 1f;
                 b.a = Mathf.MoveTowards(b.a, target, fadeSpeed * Time.deltaTime);
 
@@ -145,6 +140,17 @@ namespace JSHWWedding
                     SwapMaterials(b, false);
                 }
             }
+        }
+
+        int ColliderToBuilding(Collider col)
+        {
+            Transform t = col.transform;
+            while (t != null)
+            {
+                for (int i = 0; i < blds.Count; i++) if (blds[i].root == t) return i;
+                t = t.parent;
+            }
+            return -1;
         }
 
         void SwapMaterials(Bld b, bool toFade)

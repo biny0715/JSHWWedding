@@ -58,7 +58,10 @@ namespace Photon.Pun.Demo.PunBasics
             {
                 Ray ray = cam.ScreenPointToRay(screenPos);
 
-                if (Physics.Raycast(ray, out RaycastHit hit, 100f, groundLayerMask))
+                // 건물 조각 MeshCollider(가림 fade 판정용)는 Default(0) 레이어에 있음.
+                // 클릭 이동은 그것들을 통과해 terrain(Ground)만 맞도록 Default 를 제외 → 오목 건물 안뜰도 타겟 가능.
+                int clickMask = groundLayerMask & ~(1 << 0);
+                if (Physics.Raycast(ray, out RaycastHit hit, 100f, clickMask))
                 {
                     agent.SetDestination(hit.point);
                 }
