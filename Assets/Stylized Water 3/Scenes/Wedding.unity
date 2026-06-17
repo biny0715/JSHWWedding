@@ -347,7 +347,9 @@ MonoBehaviour:
   fadedAlpha: 0.1
   fadeSpeed: 8
   fadeColor: {r: 0.86, g: 0.86, b: 0.9, a: 1}
-  targetHeight: 1.2
+  occludeThreshold: 0.5
+  bodyHeight: 1.7
+  bodyWidth: 0.6
   margin: 0.6
 --- !u!1001 &12693359
 PrefabInstance:

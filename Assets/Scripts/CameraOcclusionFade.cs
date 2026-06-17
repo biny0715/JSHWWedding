@@ -1,8 +1,9 @@
 // CameraOcclusionFade.cs
 // 카메라와 플레이어 사이에 든 건물을 반투명(fade) 처리. 카메라는 당기지 않음(과확대 없음).
-// 판정: 큰 BoxCollider 대신 건물 "조각별 렌더러 bounds" 에 카메라->플레이어 선분이 통과하는지 검사.
-//   - 조각 AABB 합집합이라 건물 실제 모양에 가깝다(처마/빈 공간 오탐 감소).
-//   - Bounds.IntersectRay 는 카메라가 건물 안에 있어도(원점 내부) 감지된다(Collider.Raycast 의 한계 해결).
+// 판정: 플레이어 실루엣(머리~발 × 좌우 폭)을 여러 점으로 샘플링하고, 카메라->각 점 선분이
+//        건물 조각 렌더러 bounds 를 지나면 그 점이 "가려짐". 가려진 점 비율이 occludeThreshold
+//        이상일 때만 그 건물을 fade. (가장자리만 살짝 걸치면 비율이 낮아 fade 안 함.)
+//   - Bounds.IntersectRay 는 카메라가 건물 안에 있어도(원점 내부) 감지된다.
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -14,16 +15,27 @@ namespace JSHWWedding
     {
         [Tooltip("건물 루트(비우면 WeddingEnviroments/House 자동). 자식 = 각 건물")]
         public Transform houseRoot;
-        [Range(0f, 1f)] public float fadedAlpha = 0.12f;   // 가릴 때 알파(낮을수록 더 투명)
+        [Range(0f, 1f)] public float fadedAlpha = 0.1f;    // 가릴 때 알파(낮을수록 더 투명)
         public float fadeSpeed = 8f;
         public Color fadeColor = new Color(0.86f, 0.86f, 0.9f);
-        [Tooltip("플레이어 머리 높이(가림 판정 타겟 오프셋)")]
-        public float targetHeight = 1.2f;
-        [Tooltip("플레이어에 이만큼 가까운(앞쪽) 조각은 가림으로 안 침(플레이어가 벽에 붙어있을 때 오탐 방지)")]
+
+        [Header("가림 판정")]
+        [Tooltip("이 비율 이상의 몸 샘플점이 가려져야 fade (낮을수록 민감)")]
+        [Range(0f, 1f)] public float occludeThreshold = 0.5f;
+        [Tooltip("샘플할 캐릭터 키")]
+        public float bodyHeight = 1.7f;
+        [Tooltip("샘플할 캐릭터 폭")]
+        public float bodyWidth = 0.6f;
+        [Tooltip("이만큼 가까운(앞쪽) 조각은 가림으로 안 침(벽에 붙어있을 때 오탐 방지)")]
         public float margin = 0.6f;
+
+        // 몸 세로/가로 샘플 위치 비율
+        static readonly float[] HEIGHTS = { 0.12f, 0.4f, 0.68f, 0.95f };
+        static readonly float[] WIDTHS = { -1f, 0f, 1f };
 
         Camera cam;
         Transform player;
+        Vector3[] samples;
 
         class Bld
         {
@@ -43,6 +55,8 @@ namespace JSHWWedding
                 if (go) houseRoot = go.transform;
             }
             if (houseRoot == null) { enabled = false; return; }
+
+            samples = new Vector3[HEIGHTS.Length * WIDTHS.Length];
 
             var lit = Shader.Find("Universal Render Pipeline/Lit");
             foreach (Transform child in houseRoot)
@@ -64,26 +78,41 @@ namespace JSHWWedding
             if (cam == null || player == null) return;
 
             Vector3 from = cam.transform.position;
-            Vector3 to = player.position + Vector3.up * targetHeight;
-            Vector3 d = to - from;
-            float dist = d.magnitude;
-            var ray = new Ray(from, d.normalized);
-            float limit = dist - margin;
+            Vector3 basePos = player.position;
+
+            // 카메라->플레이어 시선에 수직인 가로축(수평)
+            Vector3 right = Vector3.Cross(basePos - from, Vector3.up);
+            right = right.sqrMagnitude < 1e-4f ? cam.transform.right : right.normalized;
+
+            // 몸 샘플점 생성 (머리~발 × 좌우)
+            int n = 0;
+            for (int h = 0; h < HEIGHTS.Length; h++)
+                for (int w = 0; w < WIDTHS.Length; w++)
+                    samples[n++] = basePos + Vector3.up * (bodyHeight * HEIGHTS[h]) + right * (bodyWidth * 0.5f * WIDTHS[w]);
+            int total = n;
 
             for (int i = 0; i < blds.Count; i++)
             {
                 var b = blds[i];
 
-                // 카메라->플레이어 선분이 이 건물 조각 중 하나라도 통과하면 가림
-                bool occ = false;
-                var rs = b.rends;
-                for (int r = 0; r < rs.Length; r++)
+                int occluded = 0;
+                for (int s = 0; s < total; s++)
                 {
-                    var ren = rs[r];
-                    if (ren == null) continue;
-                    if (ren.bounds.IntersectRay(ray, out float hd) && hd < limit) { occ = true; break; }
+                    Vector3 d = samples[s] - from;
+                    float dist = d.magnitude;
+                    var ray = new Ray(from, d / dist);
+                    float limit = dist - margin;
+
+                    var rs = b.rends;
+                    for (int r = 0; r < rs.Length; r++)
+                    {
+                        var ren = rs[r];
+                        if (ren == null) continue;
+                        if (ren.bounds.IntersectRay(ray, out float hd) && hd < limit) { occluded++; break; }
+                    }
                 }
 
+                bool occ = total > 0 && (float)occluded / total >= occludeThreshold;
                 float target = occ ? fadedAlpha : 1f;
                 b.a = Mathf.MoveTowards(b.a, target, fadeSpeed * Time.deltaTime);
 
