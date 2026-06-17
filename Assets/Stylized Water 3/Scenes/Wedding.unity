@@ -217,6 +217,7 @@ GameObject:
   - component: {fileID: 9806405}
   - component: {fileID: 9806404}
   - component: {fileID: 9806408}
+  - component: {fileID: 9806409}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -330,6 +331,23 @@ MonoBehaviour:
     Time: 0
     Smoothing: 0
     IgnoreY: 0
+--- !u!114 &9806409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9806402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55460bc60dd5f3e499484a1a083bec68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.CameraOcclusionFade
+  houseRoot: {fileID: 0}
+  fadedAlpha: 0.28
+  fadeSpeed: 6
+  fadeColor: {r: 0.86, g: 0.86, b: 0.9, a: 1}
+  targetHeight: 1.2
 --- !u!1001 &12693359
 PrefabInstance:
   m_ObjectHideFlags: 0
