@@ -31,6 +31,16 @@ mergeInto(LibraryManager.library, {
     } catch (e) { console.error("WeddingSceneReady error:", e); }
   },
 
+  // Photon 연결 끊김 — 사유(cause)를 웹에 전달(원인 진단/안내용)
+  WeddingDisconnected: function (causePtr) {
+    try {
+      var cause = UTF8ToString(causePtr);
+      if (typeof window !== "undefined" && typeof window.OnWeddingDisconnected === "function") {
+        window.OnWeddingDisconnected(cause);
+      }
+    } catch (e) { console.error("WeddingDisconnected error:", e); }
+  },
+
   // FlowerDecoZone 버튼 → 웹 방명록 창 열기 (이름 자동입력 + 수정불가)
   OpenWeddingGuestbook: function (namePtr) {
     try {

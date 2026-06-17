@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
+using Photon.Realtime;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Runtime.InteropServices;
@@ -23,7 +24,7 @@ namespace JSHWWedding
     /// 웹 ↔ 유니티 로비 브리지.
     /// GameObject 이름을 반드시 "WebBridge" 로 두어야 웹의 SendMessage("WebBridge", ...) 가 도달한다.
     /// </summary>
-    public class WebLobbyBridge : MonoBehaviour
+    public class WebLobbyBridge : MonoBehaviourPunCallbacks
     {
         [Header("참조 (비워두면 런타임에 자동 탐색)")]
         [SerializeField] private Launcher launcher;
@@ -49,6 +50,8 @@ namespace JSHWWedding
         [DllImport("__Internal")] private static extern void WeddingEntering();
         // 유니티 → 웹: "Wedding(예식장) 3D 씬 로드 완료" 신호 (jslib)
         [DllImport("__Internal")] private static extern void WeddingSceneReady();
+        // 유니티 → 웹: Photon 연결 끊김 + 사유 (jslib)
+        [DllImport("__Internal")] private static extern void WeddingDisconnected(string cause);
 #endif
 
         private void Awake()
@@ -103,12 +106,25 @@ namespace JSHWWedding
         // 예식장(Wedding) 씬 로드 완료 → 웹에 알려 로딩/커튼을 걷게 한다.
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name != "Wedding") return;
+            if (scene.name == "Wedding")
+            {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            WeddingSceneReady();
+                WeddingSceneReady();
 #else
-            Debug.Log("[WebLobbyBridge] Wedding 씬 로드됨 (에디터: WeddingSceneReady 생략)");
+                Debug.Log("[WebLobbyBridge] Wedding 씬 로드됨 (에디터)");
 #endif
+            }
+            else if (scene.name == "Lobby")
+            {
+                // Photon 끊김 등으로 GameManager가 로비로 되돌린 경우 → 웹에 다시 알려 이름 입력칸 재표시.
+                // 재입장 가능하도록 입장 플래그도 리셋.
+                entered = false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                WeddingLobbyReady();
+#else
+                Debug.Log("[WebLobbyBridge] Lobby 재진입 → 입력 재표시 신호 (에디터)");
+#endif
+            }
         }
 
         private void OnDestroy()
@@ -148,6 +164,17 @@ namespace JSHWWedding
         {
             UIInputLock.Locked = false;
             Debug.Log("[WebLobbyBridge] 오버레이 닫힘 → 이동 잠금 해제");
+        }
+
+        // Photon 연결이 끊기면(어느 씬이든) 사유를 웹에 전달 → 진단/안내.
+        // 끊기면 GameManager가 로비로 되돌리고, OnSceneLoaded(Lobby)에서 입력칸을 재표시한다.
+        public override void OnDisconnected(DisconnectCause cause)
+        {
+            entered = false;
+            Debug.LogWarning($"[WebLobbyBridge] Photon 끊김: {cause}");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            WeddingDisconnected(cause.ToString());
+#endif
         }
 
         // ===== 에디터 테스트용 : Connect 버튼 =====
