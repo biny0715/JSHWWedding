@@ -344,10 +344,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.CameraOcclusionFade
   houseRoot: {fileID: 0}
-  fadedAlpha: 0.28
-  fadeSpeed: 6
+  fadedAlpha: 0.1
+  fadeSpeed: 8
   fadeColor: {r: 0.86, g: 0.86, b: 0.9, a: 1}
   targetHeight: 1.2
+  margin: 0.6
 --- !u!1001 &12693359
 PrefabInstance:
   m_ObjectHideFlags: 0
