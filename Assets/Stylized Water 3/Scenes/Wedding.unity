@@ -20919,7 +20919,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.InteractionZone
   action: 1
-  buttonLabel: "\uC0AC\uC9C4 \uC568\uBC94"
+  buttonLabel: "\uC6E8\uB529 \uC568\uBC94"
   activateRadius: 4
   buttonHeight: 2.2
   buttonColor: {r: 0.913, g: 0.639, b: 0.612, a: 1}

@@ -30,6 +30,22 @@ namespace JSHWWedding
         Camera cam;
         GameObject ui;
         bool shown;
+        Bounds zoneBounds;     // 자식 장식들의 합산 bounds(실제 위치). pivot이 장식과 어긋나도 정확.
+        bool boundsReady;
+
+        void EnsureBounds()
+        {
+            if (boundsReady) return;
+            var rs = GetComponentsInChildren<Renderer>();
+            if (rs.Length > 0)
+            {
+                var b = rs[0].bounds;
+                for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
+                zoneBounds = b;
+            }
+            else zoneBounds = new Bounds(transform.position, Vector3.zero);
+            boundsReady = true;
+        }
 
         void Update()
         {
@@ -37,12 +53,17 @@ namespace JSHWWedding
             if (player == null) player = FindLocalPlayer();
             if (player == null || cam == null) { SetShown(false); return; }
 
-            float dist = Vector3.Distance(player.position, transform.position);
-            SetShown(dist <= activateRadius && !UIInputLock.Locked);
+            EnsureBounds();
+            Vector3 c = zoneBounds.center;
+            // 장식 footprint(XZ)까지의 수평 거리(안에 있으면 0). 높이(Y)는 무시.
+            float dx = Mathf.Max(0f, Mathf.Abs(player.position.x - c.x) - zoneBounds.extents.x);
+            float dz = Mathf.Max(0f, Mathf.Abs(player.position.z - c.z) - zoneBounds.extents.z);
+            float horiz = Mathf.Sqrt(dx * dx + dz * dz);
+            SetShown(horiz <= activateRadius && !UIInputLock.Locked);
 
             if (shown && ui != null)
             {
-                ui.transform.position = transform.position + Vector3.up * buttonHeight;
+                ui.transform.position = new Vector3(c.x, zoneBounds.min.y + buttonHeight, c.z);
                 ui.transform.rotation = cam.transform.rotation; // 빌보드(카메라 바라봄)
             }
         }
@@ -109,8 +130,18 @@ namespace JSHWWedding
 
         void OnDrawGizmosSelected()
         {
-            Gizmos.color = new Color(0.95f, 0.6f, 0.7f, 0.5f);
-            Gizmos.DrawWireSphere(transform.position, activateRadius);
+            var rs = GetComponentsInChildren<Renderer>();
+            Vector3 c = transform.position;
+            if (rs.Length > 0)
+            {
+                var b = rs[0].bounds;
+                for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
+                c = b.center;
+                Gizmos.color = new Color(0.95f, 0.6f, 0.7f, 0.3f);
+                Gizmos.DrawWireCube(b.center, b.size);
+            }
+            Gizmos.color = new Color(0.95f, 0.6f, 0.7f, 0.6f);
+            Gizmos.DrawWireSphere(new Vector3(c.x, c.y, c.z), activateRadius);
         }
     }
 }
