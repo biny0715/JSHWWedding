@@ -243,7 +243,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 7, z: -8.4}
+  FollowOffset: {x: -5.94, y: 7, z: -5.94}
 --- !u!114 &9806405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,6 +351,7 @@ MonoBehaviour:
   bodyHeight: 1.7
   bodyWidth: 0.6
   margin: 0.6
+  nearSkip: 0.3
 --- !u!1001 &12693359
 PrefabInstance:
   m_ObjectHideFlags: 0

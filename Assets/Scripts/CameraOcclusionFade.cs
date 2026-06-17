@@ -28,6 +28,8 @@ namespace JSHWWedding
         public float bodyWidth = 0.6f;
         [Tooltip("이만큼 가까운(앞쪽) 조각은 가림으로 안 침(벽에 붙어있을 때 오탐 방지)")]
         public float margin = 0.6f;
+        [Tooltip("거리 이내(카메라를 감싸거나 바로 앞) 조각 AABB 무시 — 오목 건물 안뜰/지붕 오탐 방지")]
+        public float nearSkip = 0.3f;
 
         // 몸 세로/가로 샘플 위치 비율
         static readonly float[] HEIGHTS = { 0.12f, 0.4f, 0.68f, 0.95f };
@@ -124,7 +126,7 @@ namespace JSHWWedding
                         {
                             var ren = rs[r];
                             if (ren == null) continue;
-                            if (ren.bounds.IntersectRay(ray, out float hd) && hd < limit) { occluded++; break; }
+                            if (ren.bounds.IntersectRay(ray, out float hd) && hd > nearSkip && hd < limit) { occluded++; break; }
                         }
                     }
                     occ = total > 0 && (float)occluded / total >= occludeThreshold;
