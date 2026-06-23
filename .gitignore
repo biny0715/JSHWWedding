@@ -118,3 +118,6 @@ MCPForUnity.*.csproj
 # MCP screenshots / reports
 /.screenshots/
 /WebGL_UnusedReport.txt
+
+# realvirtual MCP 로컬 인증 토큰 (버전관리 제외)
+Assets/.mcp_auth_token

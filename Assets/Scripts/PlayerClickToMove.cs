@@ -10,6 +10,14 @@ namespace Photon.Pun.Demo.PunBasics
         [Header("Raycast")]
         [SerializeField] private LayerMask groundLayerMask = ~0;
 
+        [Header("이동(꾹 누르기)")]
+        [Tooltip("누른 지점 방향으로 향할 목표 거리(m). 클수록 한 번에 멀리 걷는 느낌")]
+        [SerializeField] private float holdAheadDistance = 3.5f;
+        [Tooltip("이 거리(m) 안을 누르면 무시(캐릭터 바로 위를 눌렀을 때 떨림 방지)")]
+        [SerializeField] private float holdDeadzone = 0.4f;
+
+        private enum PointerState { None, Held, Released }
+
         private NavMeshAgent agent;
         private Camera cam;
 
@@ -54,7 +62,9 @@ namespace Photon.Pun.Demo.PunBasics
                 return;
             }
 
-            if (TryGetPointerDown(out Vector2 screenPos))
+            // 꾹 누르고 있는 동안: 누른 지점 방향으로 계속 이동. 손을 떼면 멈춘다.
+            PointerState state = GetPointer(out Vector2 screenPos);
+            if (state == PointerState.Held)
             {
                 Ray ray = cam.ScreenPointToRay(screenPos);
 
@@ -63,33 +73,54 @@ namespace Photon.Pun.Demo.PunBasics
                 int clickMask = groundLayerMask & ~(1 << 0);
                 if (Physics.Raycast(ray, out RaycastHit hit, 100f, clickMask))
                 {
-                    agent.SetDestination(hit.point);
+                    // 누른 지점의 (수평) 방향으로 일정 거리 앞을 목표로 → 누르고 있는 동안 계속 그 방향으로 걷는다.
+                    Vector3 dir = hit.point - transform.position;
+                    dir.y = 0f;
+                    if (dir.sqrMagnitude > holdDeadzone * holdDeadzone)
+                    {
+                        dir.Normalize();
+                        Vector3 ahead = transform.position + dir * holdAheadDistance;
+                        if (NavMesh.SamplePosition(ahead, out NavMeshHit nav, 2f, NavMesh.AllAreas))
+                            agent.SetDestination(nav.position);
+                        else
+                            agent.SetDestination(hit.point);   // 앞쪽이 NavMesh 밖이면 누른 지점 자체로
+                    }
                 }
+            }
+            else if (state == PointerState.Released)
+            {
+                if (agent.enabled && agent.hasPath) agent.ResetPath();   // 손을 떼면 즉시 멈춤
             }
         }
 
-        private bool TryGetPointerDown(out Vector2 screenPos)
+        // 현재 포인터(터치/마우스) 상태와 화면 좌표를 반환.
+        private PointerState GetPointer(out Vector2 screenPos)
         {
-            // 모바일
+            screenPos = default;
+
+            // 모바일: 한 손가락 기준
             if (Input.touchCount > 0)
             {
                 Touch t = Input.GetTouch(0);
-                if (t.phase == TouchPhase.Began)
-                {
-                    screenPos = t.position;
-                    return true;
-                }
+                screenPos = t.position;
+                if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+                    return PointerState.Released;
+                return PointerState.Held;   // Began / Moved / Stationary
             }
 
-            // 데스크탑
-            if (Input.GetMouseButtonDown(0))
+            // 데스크탑(마우스)
+            if (Input.GetMouseButton(0))
             {
                 screenPos = Input.mousePosition;
-                return true;
+                return PointerState.Held;
+            }
+            if (Input.GetMouseButtonUp(0))
+            {
+                screenPos = Input.mousePosition;
+                return PointerState.Released;
             }
 
-            screenPos = default;
-            return false;
+            return PointerState.None;
         }
     }
 }

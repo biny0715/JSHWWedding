@@ -35,7 +35,7 @@ namespace Photon.Pun.Demo.PunBasics
 
 		[Tooltip("The maximum number of players per room")]
 		[SerializeField]
-		private byte maxPlayersPerRoom = 4;
+		private byte maxPlayersPerRoom = 20;   // Photon 무료 플랜 CCU 한도(20)에 맞춤. 한 방에 최대 20명까지 같이 보이게.
 
 		[Tooltip("The UI Loader Anime")]
 		[SerializeField]

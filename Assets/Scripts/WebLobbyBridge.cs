@@ -158,7 +158,16 @@ namespace JSHWWedding
             Enter(PlayerName);
         }
 
-        /// <summary>웹 오버레이(방명록/사진앨범)가 닫혔다 → 플레이어 이동 잠금 해제.
+        /// <summary>웹 오버레이(메뉴: 도움말/미니맵/방명록 등)가 열렸다 → 플레이어 이동 잠금.
+        /// 존(InteractionZone)은 Unity가 직접 잠그지만, 웹 햄버거 메뉴에서 연 경우는 이 신호로 잠근다.
+        /// 웹: unityInstance.SendMessage("WebBridge","OnVenueOverlayOpened")</summary>
+        public void OnVenueOverlayOpened()
+        {
+            UIInputLock.Locked = true;
+            Debug.Log("[WebLobbyBridge] 오버레이 열림 → 이동 잠금");
+        }
+
+        /// <summary>웹 오버레이(방명록/사진앨범/메뉴)가 닫혔다 → 플레이어 이동 잠금 해제.
         /// 웹: unityInstance.SendMessage("WebBridge","OnVenueOverlayClosed")</summary>
         public void OnVenueOverlayClosed()
         {
