@@ -1,8 +1,9 @@
 // InteractionZone.cs
 // FlowerDecoZone(방명록) / PictureZone(사진앨범) 같은 오브젝트에 붙인다.
 // 플레이어가 activateRadius 안으로 오면 카메라를 바라보는 빌보드 버튼(월드 캔버스)을 띄우고,
-// 클릭하면 웹 창(jslib)을 열면서 UIInputLock 으로 플레이어 이동을 잠근다.
-// 웹 창을 닫으면 WebLobbyBridge.OnVenueOverlayClosed() 가 잠금을 푼다.
+// 클릭하면 웹 창(jslib)을 연다. 이동 잠금은 Unity가 직접 걸지 않고, 웹이 창을 "실제로" 열었을 때
+// OnVenueOverlayOpened 로 건다(WebLobbyBridge). 창을 닫으면 OnVenueOverlayClosed 가 푼다.
+// → 에디터/모바일 로컬테스트처럼 창이 안 뜨는 경우엔 잠기지 않아 그대로 이동 가능.
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -86,7 +87,8 @@ namespace JSHWWedding
 
         void OnClicked()
         {
-            UIInputLock.Locked = true;       // 창 닫힐 때까지 이동 잠금
+            // 이동 잠금은 "웹이 창을 실제로 열었을 때"만 건다(웹의 OnOpenGuestbook/Album → lockMove → OnVenueOverlayOpened).
+            // 여기서 낙관적으로 잠그면, 에디터/모바일 로컬테스트처럼 창이 안 뜨는 경우 잠금이 안 풀려 못 움직이게 됨.
             SetShown(false);
             string nick = string.IsNullOrEmpty(PhotonNetwork.NickName) ? "하객" : PhotonNetwork.NickName;
             if (action == ZoneAction.Guestbook) VenueWeb.OpenGuestbook(nick);

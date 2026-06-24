@@ -45,6 +45,19 @@ namespace JSHWWedding
         [Tooltip("한글 폰트(TMP). 비우면 런타임에 'Maplestory' 폰트를 자동 탐색")]
         public TMP_FontAsset font;
 
+        [Header("지역명 라벨 (큰 미니맵에 표시)")]
+        [Tooltip("빈 GameObject를 해당 지역 위치에 두고 드래그(anchor). text=표시할 이름(예: 예식홀)")]
+        public RegionLabel[] regions;
+        public float regionFontSize = 26f;
+        public Color regionColor = new Color(0.40f, 0.22f, 0.30f, 1f);   // plum
+
+        [Serializable]
+        public class RegionLabel
+        {
+            public string text;
+            public Transform anchor;
+        }
+
         // 팔레트
         static readonly Color Coral = new Color(0.913f, 0.639f, 0.612f, 1f);
         static readonly Color Ink   = new Color(0.29f, 0.27f, 0.24f, 1f);
@@ -61,6 +74,7 @@ namespace JSHWWedding
         float renderTimer;
 
         readonly List<TextMeshProUGUI> labels = new List<TextMeshProUGUI>();
+        readonly List<TextMeshProUGUI> regionLabelUI = new List<TextMeshProUGUI>();
         bool fontDone;
 
         void Start()
@@ -186,6 +200,7 @@ namespace JSHWWedding
             card.anchorMin = card.anchorMax = new Vector2(0.5f, 0.5f);
             card.pivot = new Vector2(0.5f, 0.5f);
             card.sizeDelta = new Vector2(860f, 940f);   // 타이틀96 + 갭20 + 맵788 + 하단여백36
+            card.anchoredPosition = new Vector2(0f, 40f);   // 타이틀이 위를 먹어 지도가 40px 내려가므로 카드를 올려 지도를 화면 중앙에
             Image cardBg = card.gameObject.AddComponent<Image>();   // raycastTarget=true → 카드 위 탭은 게임으로 안 샘
             cardBg.color = panelColor;
             bigPanel = card.gameObject;
@@ -216,6 +231,7 @@ namespace JSHWWedding
             bigImg.raycastTarget = false;
 
             bigMarker = MakeMarker(bigMapRect, 28f);
+            BuildRegionLabels(bigMapRect);
 
             // 닫기 ✕ (두 막대)
             RectTransform close = NewRect("Close", card);
@@ -267,6 +283,7 @@ namespace JSHWWedding
             bool has = player != null && cam != null;
             if (thumbMarker != null) thumbMarker.gameObject.SetActive(has);
             bool bigOn = bigPanel != null && bigPanel.activeSelf;
+            if (bigOn) UpdateRegionLabels();   // 지역명은 플레이어 유무와 무관
             if (bigMarker != null) bigMarker.gameObject.SetActive(has && bigOn);
             if (!has) return;
 
@@ -284,6 +301,47 @@ namespace JSHWWedding
             {
                 Vector2 s = bigMapRect.rect.size;
                 bigMarker.anchoredPosition = new Vector2(u * s.x, v * s.y);
+            }
+        }
+
+        // 지역명 라벨을 큰 미니맵에 생성(빈 GameObject anchor 마다 1개). 위치는 매 프레임 UpdateRegionLabels 에서.
+        void BuildRegionLabels(RectTransform map)
+        {
+            regionLabelUI.Clear();
+            if (regions == null) return;
+            foreach (var r in regions)
+            {
+                if (r == null || string.IsNullOrEmpty(r.text)) { regionLabelUI.Add(null); continue; }
+                TextMeshProUGUI lbl = AddLabel(map, r.text, regionFontSize, regionColor, true);
+                RectTransform rt = lbl.rectTransform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);   // 중심 기준 배치(AddLabel의 Stretch 덮어쓰기)
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(240f, 44f);
+                lbl.outlineWidth = 0.22f;          // 지도 위 대비용 흰 외곽선
+                lbl.outlineColor = Color.white;
+                regionLabelUI.Add(lbl);
+            }
+        }
+
+        // 각 지역 anchor 의 월드좌표를 미니맵 좌표로 변환해 라벨 배치(화면 밖이면 숨김). 마커와 동일한 매핑.
+        void UpdateRegionLabels()
+        {
+            if (regions == null || cam == null || bigMapRect == null) return;
+            if (viewHalfSize <= 0f) ApplyFraming();
+            Vector2 sz = bigMapRect.rect.size;
+            for (int i = 0; i < regions.Length && i < regionLabelUI.Count; i++)
+            {
+                TextMeshProUGUI lbl = regionLabelUI[i];
+                if (lbl == null) continue;
+                RegionLabel r = regions[i];
+                if (r == null || r.anchor == null) { lbl.gameObject.SetActive(false); continue; }
+
+                Vector3 off = r.anchor.position - areaCenter;
+                float u = Vector3.Dot(off, cam.transform.right) / (2f * viewHalfSize);
+                float v = Vector3.Dot(off, cam.transform.up)    / (2f * viewHalfSize);
+                bool inside = Mathf.Abs(u) <= 0.5f && Mathf.Abs(v) <= 0.5f;
+                lbl.gameObject.SetActive(inside);
+                if (inside) lbl.rectTransform.anchoredPosition = new Vector2(u * sz.x, v * sz.y);
             }
         }
 

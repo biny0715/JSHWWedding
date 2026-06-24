@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Launcher.cs" company="Exit Games GmbH">
 //   Part of: Photon Unity Networking Demos
 // </copyright>
@@ -37,7 +37,7 @@ namespace Photon.Pun.Demo.PunBasics
 
 		private GameObject instance;
 
-        [Tooltip("The prefab to use for representing the player")]
+        [Tooltip("The prefab to use for representing the player (커스텀 미설정 시 폴백)")]
         [SerializeField]
         private GameObject playerPrefab;
 
@@ -59,32 +59,14 @@ namespace Photon.Pun.Demo.PunBasics
 				return;
 			}
 
-
-			if (playerPrefab == null) { // #Tip Never assume public properties of Components are filled up properly, always check and inform the developer of it.
-
-				Debug.LogError("<Color=Red><b>Missing</b></Color> playerPrefab Reference. Please set it up in GameObject 'Game Manager'", this);
-			} else {
-
-
-				if (PhotonNetwork.InRoom && PlayerManager.LocalPlayerInstance == null)
-				{
-					Vector3 spawnPos = GetSpawnPosition();
-
-					PhotonNetwork.Instantiate(
-						this.playerPrefab.name,
-						spawnPos,
-						Quaternion.identity,
-						0
-					);
-				}
-				else{
-
-					Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
-				}
-
-
+			if (PhotonNetwork.InRoom && PlayerManager.LocalPlayerInstance == null)
+			{
+				SpawnPlayer(GetSpawnPosition());
 			}
-
+			else
+			{
+				Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
+			}
 		}
 
 		/// <summary>
@@ -108,17 +90,25 @@ namespace Photon.Pun.Demo.PunBasics
 	        if (PlayerManager.LocalPlayerInstance == null)
 	        {
 		        Debug.LogFormat("Spawning LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
-
-		        Vector3 spawnPos = GetSpawnPosition();
-
-		        PhotonNetwork.Instantiate(
-			        this.playerPrefab.name,
-			        spawnPos,
-			        Quaternion.identity,
-			        0
-		        );
+		        SpawnPlayer(GetSpawnPosition());
 	        }
         }
+
+        // WebLobbyBridge(Assembly-CSharp)가 입장 직전 채워준다. GameManager 는 별도 어셈블리(Demos asmdef)라
+        // JSHWWedding.* 타입을 참조할 수 없어 '원시 타입'(string, object[])만 주고받는다.
+        public static string CustomPrefabName;            // "MaleCharacter"/"FemaleCharacter" (없으면 폴백)
+        public static object[] CustomInstantiationData;   // 부위 11개 int (없으면 커스텀 없음)
+
+        // 성별 프리팹 + 커스텀 룩(instantiationData)으로 스폰. 모든 클라이언트가 InstantiationData 를 읽어 동일 조립.
+        private void SpawnPlayer(Vector3 spawnPos)
+        {
+            string prefabName = !string.IsNullOrEmpty(CustomPrefabName)
+                ? CustomPrefabName
+                : (playerPrefab != null ? playerPrefab.name : "FemaleCharacter");
+            object[] data = CustomInstantiationData;
+            PhotonNetwork.Instantiate(prefabName, spawnPos, Quaternion.identity, 0, data);
+        }
+
         private Vector3 GetSpawnPosition()
         {
 	        Vector3 basePos = SpawnPosition;
@@ -166,7 +156,7 @@ namespace Photon.Pun.Demo.PunBasics
 
 		#region Public Methods
 
-		public void LeaveRoom() 
+		public void LeaveRoom()
 		{
 			PhotonNetwork.LeaveRoom();
 		}

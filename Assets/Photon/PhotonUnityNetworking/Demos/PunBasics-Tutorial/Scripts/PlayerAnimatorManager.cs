@@ -18,6 +18,13 @@ namespace Photon.Pun.Demo.PunBasics
             animators.AddRange(GetComponentsInChildren<Animator>());
         }
 
+        // 커스텀으로 부위(Animator)가 교체된 뒤 다시 수집한다. CharacterAssembler 가 SendMessage 로 호출.
+        public void RefreshAnimators()
+        {
+            animators.Clear();
+            animators.AddRange(GetComponentsInChildren<Animator>());
+        }
+
         void Update()
         {
             float speed;
@@ -34,7 +41,7 @@ namespace Photon.Pun.Demo.PunBasics
 
             foreach (Animator anim in animators)
             {
-                anim.SetFloat("Speed", speed);
+                if (anim != null) anim.SetFloat("Speed", speed);   // 파괴된 부위(null) 건너뜀 → 루프 중단 방지
             }
         }
 

@@ -58,6 +58,16 @@ mergeInto(LibraryManager.library, {
         window.OnOpenAlbum();
       }
     } catch (e) { console.error("OpenWeddingAlbum error:", e); }
+  },
+
+  // 로비 캐릭터 프리뷰 준비 + 카테고리별 부위 개수(JSON) → 웹이 커스텀 버튼 생성/표시
+  PreviewReady: function (jsonPtr) {
+    try {
+      var json = UTF8ToString(jsonPtr);
+      if (typeof window !== "undefined" && typeof window.OnPreviewReady === "function") {
+        window.OnPreviewReady(json);
+      }
+    } catch (e) { console.error("PreviewReady error:", e); }
   }
 
 });

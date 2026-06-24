@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 7627381204327853028}
   - component: {fileID: 6543286571129987677}
   - component: {fileID: 5814289370375878499}
+  - component: {fileID: 5886668306498329394}
   m_Layer: 0
   m_Name: MaleCharacter
   m_TagString: Untagged
@@ -281,6 +282,23 @@ MonoBehaviour:
   fontSize: 4
   textColor: {r: 1, g: 1, b: 1, a: 1}
   outlineColor: {r: 0.27, g: 0.22, b: 0.24, a: 1}
+  referenceDistance: 12
+  minScale: 0.7
+  maxScale: 3.5
+--- !u!114 &5886668306498329394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7548924090412476535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44db76670643a77488b9e0c9e753f058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.Customization.PlayerCustomizationApply
+  gender: 0
+  manifest: {fileID: 11400000, guid: 65c94ccf0fa1cc249954e233048034db, type: 2}
 --- !u!1001 &2664640690835678980
 PrefabInstance:
   m_ObjectHideFlags: 0

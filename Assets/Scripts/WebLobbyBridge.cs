@@ -13,6 +13,7 @@ using TMPro;
 using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
 using Photon.Realtime;
+using JSHWWedding.Customization;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Runtime.InteropServices;
@@ -42,6 +43,11 @@ namespace JSHWWedding
 
         private bool entered;   // 입장 신호 중복 방지
         private static WebLobbyBridge instance;  // 씬 전환 후 유지되는 단일 인스턴스
+        public static WebLobbyBridge Active => instance;
+
+        // 캐릭터 커스텀
+        [System.NonSerialized] public LobbyPreviewController preview;  // 로비 프리뷰(런타임 자기등록)
+        public static CharacterLook PendingLook;                       // 입장 시 Wedding 으로 넘길 룩(씬 전환 유지)
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         // 유니티 → 웹: "로비가 이름 받을 준비 됐다" 신호 (jslib)
@@ -52,6 +58,8 @@ namespace JSHWWedding
         [DllImport("__Internal")] private static extern void WeddingSceneReady();
         // 유니티 → 웹: Photon 연결 끊김 + 사유 (jslib)
         [DllImport("__Internal")] private static extern void WeddingDisconnected(string cause);
+        // 유니티 → 웹: 프리뷰 준비됨 + 카테고리별 부위 개수(JSON) (jslib)
+        [DllImport("__Internal")] private static extern void PreviewReady(string countsJson);
 #endif
 
         private void Awake()
@@ -68,6 +76,10 @@ namespace JSHWWedding
             instance = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            // 느린 기기에서 무거운 Wedding 비동기 로딩이 메인스레드를 길게 멈추면 그동안 ACK가 안 나가
+            // Photon이 끊긴다(14 Pro 등). 로딩을 잘게 쪼개(프레임당 적게) 멈춤을 줄여 ACK가 흐르게 한다.
+            Application.backgroundLoadingPriority = ThreadPriority.Low;
 
             // 참조 자동 보강 (인스펙터에서 비워두면 런타임 탐색)
             if (launcher == null) launcher = FindFirstObjectByType<Launcher>();
@@ -133,6 +145,20 @@ namespace JSHWWedding
             if (instance == this) instance = null;
         }
 
+        // 무거운 Wedding 씬 로딩(PhotonNetwork.LoadLevel) 동안 PUN 은 IsMessageQueueRunning=false 로
+        // send/dispatch 를 모두 멈춘다 → ACK 도 안 나가 모바일 등 느린 기기에서 로딩이 기본 타임아웃(10s)을
+        // 넘으면 ClientTimeout 으로 끊긴다. 큐가 멈춘 동안 ACK만 직접 보내 연결을 유지한다.
+        private float ackTimer;
+        private void Update()
+        {
+            if (!PhotonNetwork.IsConnected || PhotonNetwork.IsMessageQueueRunning) return;
+            ackTimer += Time.unscaledDeltaTime;
+            if (ackTimer < 0.5f) return;
+            ackTimer = 0f;
+            var peer = PhotonNetwork.NetworkingClient?.LoadBalancingPeer;
+            if (peer != null) peer.SendAcksOnly();
+        }
+
         // ===== 웹(JS) → 유니티 : SendMessage 로 호출되는 진입점들 =====
 
         /// <summary>웹에서 입력한 캐릭터 이름만 먼저 전달받는다. (입장은 EnterVenue 로 별도 신호)</summary>
@@ -175,6 +201,40 @@ namespace JSHWWedding
             Debug.Log("[WebLobbyBridge] 오버레이 닫힘 → 이동 잠금 해제");
         }
 
+        // ===== 웹 → 유니티 : 캐릭터 커스텀 (로비) =====
+        /// <summary>웹: SendMessage("WebBridge","SetPreviewGender","male"/"female")</summary>
+        public void SetPreviewGender(string g)
+        {
+            if (preview != null) preview.ApplyGender(g == "male" ? 0 : 1);
+        }
+
+        /// <summary>웹: SendMessage("WebBridge","SetPreviewPart","&lt;catSlot&gt;:&lt;index&gt;") 예 "3:14", 없음 "7:-1"</summary>
+        public void SetPreviewPart(string catAndIndex)
+        {
+            if (preview == null || string.IsNullOrEmpty(catAndIndex)) return;
+            var p = catAndIndex.Split(':');
+            if (p.Length == 2 && int.TryParse(p[0], out int cat) && int.TryParse(p[1], out int idx))
+                preview.SetCategory(cat, idx);
+        }
+
+        /// <summary>웹: SendMessage("WebBridge","ApplyLook","g,skin,..,hats") — 전체 룩 적용 + 입장용으로 보관</summary>
+        public void ApplyLook(string csv)
+        {
+            var look = CharacterLook.Parse(csv);
+            PendingLook = look;
+            if (preview != null) preview.ApplyLook(look);
+        }
+
+        /// <summary>프리뷰 준비 후 웹에 카테고리별 개수 전달(버튼 생성용).</summary>
+        public void FirePreviewReady(string countsJson)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            PreviewReady(countsJson);
+#else
+            Debug.Log("[WebLobbyBridge] (에디터) PreviewReady: " + countsJson);
+#endif
+        }
+
         // Photon 연결이 끊기면(어느 씬이든) 사유를 웹에 전달 → 진단/안내.
         // 끊기면 GameManager가 로비로 되돌리고, OnSceneLoaded(Lobby)에서 입력칸을 재표시한다.
         public override void OnDisconnected(DisconnectCause cause)
@@ -211,11 +271,23 @@ namespace JSHWWedding
             }
 
             entered = true;
+            // 커스텀 룩 확정: 프리뷰가 있으면 그 현재 룩을, 없으면 웹이 ApplyLook 으로 보낸 PendingLook 유지
+            if (preview != null) PendingLook = preview.CurrentLook;
+            // GameManager(별도 어셈블리)로는 원시 타입만 전달 (asmdef → Assembly-CSharp 참조 불가하므로)
+            if (PendingLook != null)
+            {
+                GameManager.CustomPrefabName = (PendingLook.gender == 0) ? "MaleCharacter" : "FemaleCharacter";
+                GameManager.CustomInstantiationData = PendingLook.ToInstantiationData();
+            }
             Debug.Log($"[WebLobbyBridge] 입장 시작 - NickName: {name}");
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             WeddingEntering();
 #endif
+            // 모바일에서 무거운 Wedding 로딩이 길어져도 버티도록 연결 타임아웃을 넉넉히(기본 10s → 60s).
+            var peer = PhotonNetwork.NetworkingClient?.LoadBalancingPeer;
+            if (peer != null) peer.DisconnectTimeout = 60000;
+
             launcher.Connect();   // Photon 접속 → 방 입장 → OnJoinedRoom 에서 Wedding 씬 로드
         }
     }
