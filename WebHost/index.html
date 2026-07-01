@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>운림제 모바일 예식장 · 형원 ♥ 지수</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="stylesheet" href="assets/css/venue.css">
+  </head>
+
+  <body>
+    <!-- =========================================================
+         Unity WebGL 3D 무대 (전체 화면, 배경 레이어)
+         ========================================================= -->
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+
+      <div id="unity-warning"> </div>
+
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">JSHWWedding</div>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         HTML/CSS/JS UI 오버레이 (투명 배경, Unity 위 레이어)
+         로비 씬: 스플래시 → 이름/성별 → (커스텀) → 입장하기
+         pointer-events 로 Unity 캔버스와 터치 이벤트 분리
+         ========================================================= -->
+    <div id="ui-overlay">
+      <!-- Wedding 씬이 열리기 전까지 Unity 화면이 비치지 않도록 불투명 배경 커튼 -->
+      <div id="venue-curtain"></div>
+
+      <!-- 좌상단 햄버거 메뉴 (입장 후 표시) · 미니맵은 유니티가 우상단에 상시 표시 -->
+      <div class="venue-menu-backdrop" id="venue-menu-backdrop" hidden></div>
+      <button class="venue-menu-btn" id="venue-menu-btn" type="button" aria-label="메뉴" aria-expanded="false" hidden>
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="venue-menu" id="venue-menu" aria-label="예식장 메뉴" hidden>
+        <button type="button" class="venue-menu-item" data-menu="help"><span class="venue-menu-ic">📖</span>도움말</button>
+        <button type="button" class="venue-menu-item" data-menu="guestbook"><span class="venue-menu-ic">✍️</span>방명록</button>
+        <a class="venue-menu-item" href="https://biny0715.github.io/JSHWWedding_WebGL/"><span class="venue-menu-ic">←</span>청첩장으로</a>
+      </nav>
+
+      <!-- 로딩: Unity 로비 준비/입장 처리 동안 표시 (준비 전 입력칸 노출 방지) -->
+      <section class="lobby" id="venue-loading">
+        <div class="lobby-card loading-card">
+          <div class="spinner" aria-hidden="true"></div>
+          <p class="loading-text" id="loading-text">예식장을 불러오는 중…</p>
+          <p class="loading-sub" id="loading-sub">잠시만 기다려 주세요</p>
+          <button type="button" class="lobby-enter" id="loading-retry" style="display:none;margin-top:16px;">새로고침</button>
+          <button type="button" class="link-btn" id="change-name-link" style="display:none;">다른 이름으로 입장</button>
+        </div>
+      </section>
+
+      <!-- 로비 씬: 스텝 1 — 스플래시 + 이름/성별 (Unity 로비 준비 후 표시) -->
+      <section class="lobby lobby--hidden" id="lobby-step1">
+        <div class="lobby-card">
+          <p class="lobby-splash-label">운림제 모바일 예식장</p>
+          <h1 class="lobby-title">형원 <span>♥</span> 지수</h1>
+          <p class="lobby-sub">2026 · 11 · 08 · 광주 운림제</p>
+          <p class="lobby-notice" id="lobby-notice" style="display:none;"></p>
+
+          <div class="lobby-form">
+            <label class="field">
+              <span class="field-label">이름</span>
+              <input type="text" id="visitor-name" placeholder="방명록에 표시될 이름" maxlength="12" autocomplete="off">
+            </label>
+
+            <div class="field">
+              <span class="field-label">성별</span>
+              <div class="gender-group" role="radiogroup" aria-label="성별 선택">
+                <button type="button" class="gender-btn" data-gender="male" aria-pressed="false">남</button>
+                <button type="button" class="gender-btn" data-gender="female" aria-pressed="false">여</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="lobby-next" id="lobby-next-btn" disabled>다음</button>
+        </div>
+      </section>
+
+      <!-- 로비 씬: 스텝 2 — 캐릭터 꾸미기.
+           프리뷰는 Unity(LobbyPreviewController)가 전체화면으로 렌더(step2 진입 시 커튼 숨김 → 드러남).
+           여긴 하단 컨트롤 시트만. 버튼은 counts 받아 JS가 구성. -->
+      <section class="lobby lobby--step2 lobby--hidden" id="lobby-step2">
+        <div class="custom-sheet">
+          <p class="custom-title">캐릭터 꾸미기</p>
+          <div class="custom-tabs" id="custom-tabs"></div>
+          <div class="custom-row">
+            <button class="cs-arrow" id="cs-prev" type="button" aria-label="이전">‹</button>
+            <span class="cs-label" id="cs-label">—</span>
+            <button class="cs-arrow" id="cs-next" type="button" aria-label="다음">›</button>
+          </div>
+          <div class="lobby-actions">
+            <button type="button" class="lobby-prev" id="lobby-prev-btn">이전</button>
+            <button type="button" class="lobby-enter" id="lobby-enter-btn">입장하기</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 예식장 씬 플레이어 UI 자리 (입장 후 표시, 미니맵 등은 Unity에서 구현) -->
+      <div class="play-ui play-ui--hidden" id="play-ui"></div>
+
+      <!-- 방명록 창 (Unity FlowerDecoZone 근처 버튼에서 열림) -->
+      <div class="venue-modal" id="gb-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="gb-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">방명록</h2>
+          <div id="venue-gb-widget"></div>
+        </div>
+      </div>
+
+      <!-- 사진 앨범 창 (Unity PictureZone 근처 버튼에서 열림) -->
+      <div class="venue-modal" id="album-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="album-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">사진 앨범</h2>
+          <div id="venue-album"></div>
+        </div>
+      </div>
+
+      <!-- 도움말 창 (메뉴 → 도움말) -->
+      <div class="venue-modal" id="help-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="help-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">조작 방법</h2>
+          <div class="help-body">
+            <div class="help-step">
+              <div class="help-num">1</div>
+              <div class="help-info">
+                <h3 class="help-h">이동하기</h3>
+                <p class="help-p">화면을 <b>꾹 누른 채</b> 가고 싶은 방향을 향하면 캐릭터가 그쪽으로 계속 걸어가요. 손가락을 움직여 방향을 바꾸고, <b>손을 떼면 멈춰요.</b></p>
+              </div>
+            </div>
+            <div class="help-illust">
+              <svg viewBox="0 0 280 110" class="help-svg" role="img" aria-label="화면을 꾹 눌러 이동">
+                <ellipse cx="140" cy="92" rx="122" ry="14" fill="#eef3ee"/>
+                <path d="M98 80 Q150 56 196 70" fill="none" stroke="#8fc5d6" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 9"/>
+                <path d="M189 59 L206 70 L188 79 Z" fill="#5b9fb3"/>
+                <ellipse cx="92" cy="89" rx="16" ry="5" fill="#d8c9b0" opacity=".5"/>
+                <circle cx="92" cy="51" r="11" fill="#e9a39c"/>
+                <rect x="84" y="59" width="16" height="27" rx="8" fill="#5b9fb3"/>
+                <circle cx="206" cy="70" r="16" fill="none" stroke="#e9a39c" stroke-width="3" opacity=".35"/>
+                <circle cx="206" cy="70" r="9" fill="none" stroke="#e9a39c" stroke-width="3" opacity=".7"/>
+                <circle cx="206" cy="70" r="3.5" fill="#e9a39c"/>
+                <text x="206" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#5b9fb3" font-family="sans-serif">꾹!</text>
+              </svg>
+            </div>
+
+            <div class="help-step">
+              <div class="help-num">2</div>
+              <div class="help-info">
+                <h3 class="help-h">기능 버튼 사용</h3>
+                <p class="help-p">방명록·사진처럼 특별한 장소에 가까이 가면 머리 위에 <b>버튼</b>이 떠요. 버튼을 누르면 해당 기능이 열려요.</p>
+              </div>
+            </div>
+            <div class="help-illust">
+              <svg viewBox="0 0 280 120" class="help-svg" role="img" aria-label="가까이 가면 버튼 등장">
+                <ellipse cx="140" cy="104" rx="122" ry="13" fill="#eef3ee"/>
+                <ellipse cx="150" cy="98" rx="27" ry="9" fill="#d8c9b0" opacity=".5"/>
+                <path d="M150 62 L150 86" stroke="#e9a39c" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"/>
+                <rect x="104" y="28" width="92" height="34" rx="17" fill="#e9a39c"/>
+                <text x="150" y="50" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" font-family="sans-serif">방명록</text>
+                <circle cx="92" cy="74" r="10" fill="#8fc5d6"/>
+                <rect x="84" y="81" width="16" height="22" rx="8" fill="#5b9fb3"/>
+                <circle cx="178" cy="45" r="13" fill="none" stroke="#fff" stroke-width="3" opacity=".85"/>
+                <circle cx="178" cy="45" r="4" fill="#fff"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 미니맵은 유니티 패널(MinimapSystem)이 렌더 — 메뉴의 "미니맵"이 SendMessage 로 연다 -->
+    </div>
+
+    <!-- Unity 로더 -->
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/Build.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/Build.data.unityweb",
+        frameworkUrl: buildUrl + "/Build.framework.js.unityweb",
+        codeUrl: buildUrl + "/Build.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Biny",
+        productName: "JSHWWedding",
+        productVersion: "0.1.0",
+        showBanner: unityShowBanner,
+      };
+
+      (function setMobileLikeResolution() {
+        const dpr = window.devicePixelRatio || 1;
+        const capped = Math.min(dpr, 1.5);
+        config.devicePixelRatio = capped;
+      })();
+
+      function fitToViewport() {
+        canvas.style.width = "100vw";
+        canvas.style.height = "100vh";
+      }
+
+      document.querySelector("#unity-container").className = "unity-mobile";
+      canvas.className = "unity-mobile";
+
+      fitToViewport();
+      window.addEventListener("resize", fitToViewport);
+      window.addEventListener("orientationchange", () => setTimeout(fitToViewport, 200));
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          window.unityInstance = unityInstance; // jslib 연동 시 전역 참조
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+    </script>
+
+    <!-- 로비 오버레이 UI 로직 -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/venue.js"></script>
+
+    <!-- 방명록 / 사진앨범 / 메뉴(도움말·미니맵·방명록) 오버레이 -->
+    <script type="module">
+      import { mountGuestbook } from "./assets/js/guestbook.js";
+
+      var gbModal = document.getElementById("gb-modal");
+      var albumModal = document.getElementById("album-modal");
+      var helpModal = document.getElementById("help-modal");
+      var gbWidget = null, albumDone = false;
+
+      // 유니티에 신호 보내기(이동 잠금/해제 — 방명록/도움말용)
+      function sendUnity(method) {
+        if (window.unityInstance) {
+          try { window.unityInstance.SendMessage("WebBridge", method); } catch (e) {}
+        }
+      }
+      function lockMove() { sendUnity("OnVenueOverlayOpened"); }      // 창 열림 → 이동 잠금
+      function anyModalOpen() {
+        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden;
+      }
+      // 모든 창이 닫혔으면 유니티 이동 잠금 해제
+      function notifyIfAllClosed() { if (!anyModalOpen()) sendUnity("OnVenueOverlayClosed"); }
+
+      function savedName() {
+        try { return localStorage.getItem("jshw_visitor_name") || "하객"; } catch (e) { return "하객"; }
+      }
+
+      // 유니티 → 웹: 방명록 열기 (이름 자동입력 + 수정불가). 메뉴에서도 재사용.
+      window.OnOpenGuestbook = function (name) {
+        albumModal.hidden = true;
+        if (!gbWidget) {
+          gbWidget = mountGuestbook(document.getElementById("venue-gb-widget"), {
+            write: true,
+            lockedName: (name && String(name).trim()) || "하객",
+          });
+        } else {
+          gbWidget.reload(true);
+        }
+        gbModal.hidden = false;
+        lockMove();   // 방명록 창이 실제로 열렸을 때만 이동 잠금(에디터/창 안 뜨면 안 잠겨 이동 가능)
+      };
+
+      // 유니티 → 웹: 사진 앨범 열기
+      window.OnOpenAlbum = function () {
+        gbModal.hidden = true;
+        renderAlbum();
+        albumModal.hidden = false;
+        lockMove();   // 앨범 창이 실제로 열렸을 때만 이동 잠금(에디터/창 안 뜨면 안 잠겨 이동 가능)
+      };
+
+      function renderAlbum() {
+        if (albumDone) return;
+        var box = document.getElementById("venue-album");
+        var photos = (window.WEDDING && window.WEDDING.gallery) || [];
+        if (!photos.length) { box.innerHTML = '<p class="album-empty">사진 준비 중이에요 📷</p>'; albumDone = true; return; }
+        box.innerHTML = photos.map(function (p) {
+          return p.src
+            ? '<div class="album-item"><img src="' + p.src + '" alt="' + (p.alt || "") + '" loading="lazy"></div>'
+            : '<div class="album-item album-item--empty"><span>사진</span></div>';
+        }).join("");
+        albumDone = true;
+      }
+
+      // ===== 우상단 햄버거 메뉴 =====
+      var menuBtn = document.getElementById("venue-menu-btn");
+      var menu = document.getElementById("venue-menu");
+      var menuBackdrop = document.getElementById("venue-menu-backdrop");
+
+      function openMenu() {
+        menu.hidden = false; menuBackdrop.hidden = false;
+        menuBtn.classList.add("open"); menuBtn.setAttribute("aria-expanded", "true");
+      }
+      function closeMenu() {
+        menu.hidden = true; menuBackdrop.hidden = true;
+        menuBtn.classList.remove("open"); menuBtn.setAttribute("aria-expanded", "false");
+      }
+      menuBtn.addEventListener("click", function () { menu.hidden ? openMenu() : closeMenu(); });
+      menuBackdrop.addEventListener("click", closeMenu);
+
+      // 메뉴 항목: 각 창 열기(공통적으로 이동 잠금)
+      menu.addEventListener("click", function (e) {
+        var item = e.target.closest("[data-menu]");
+        if (!item) return;
+        closeMenu();
+        var kind = item.getAttribute("data-menu");
+        if (kind === "help") { helpModal.hidden = false; lockMove(); }
+        else if (kind === "guestbook") { window.OnOpenGuestbook(savedName()); }   // OnOpenGuestbook 내부에서 lockMove
+      });
+
+      // 닫기 버튼들 (닫히면 다른 창이 없을 때 이동 잠금 해제)
+      document.getElementById("gb-close").addEventListener("click", function () { gbModal.hidden = true; notifyIfAllClosed(); });
+      document.getElementById("album-close").addEventListener("click", function () { albumModal.hidden = true; notifyIfAllClosed(); });
+      document.getElementById("help-close").addEventListener("click", function () { helpModal.hidden = true; notifyIfAllClosed(); });
+    </script>
+  </body>
+</html>

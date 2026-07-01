@@ -1,0 +1,342 @@
+/* =====================================================================
+ * venue.css — 모바일 예식장 (Unity 위 HTML UI 오버레이)
+ * Unity 캔버스: 전체화면 배경 레이어
+ * #ui-overlay: 투명 배경, 그 위에 로비 UI
+ * pointer-events 로 터치 이벤트 레이어 분리
+ * ===================================================================== */
+
+@font-face {
+  font-family: "GmarketSans";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff") format("woff");
+  font-weight: 700; font-display: swap;
+}
+@font-face {
+  font-family: "GmarketSans";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff") format("woff");
+  font-weight: 500; font-display: swap;
+}
+
+:root {
+  --sea: #8fc5d6; --sea-dk: #5b9fb3; --sand: #f6ecd8;
+  --coral: #e9a39c; --ink: #4a443d; --paper: #fbf7ef;
+}
+
+*, *::before, *::after { box-sizing: border-box; }  /* 입력칸 등 width:100% overflow 방지 */
+
+html, body {
+  width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+  background: #2a3b40;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif;
+}
+
+/* Unity 전체화면 (배경 레이어) */
+#unity-container { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0; background: #2a3b40; }
+#unity-canvas { display: block; width: 100vw; height: 100vh; background: #2a3b40; outline: none; }
+#unity-footer { display: none !important; }
+
+@supports (padding: env(safe-area-inset-top)) {
+  #ui-overlay { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+}
+
+/* =========================================================
+   UI 오버레이 — 기본은 클릭 통과(Unity로 전달),
+   실제 컨트롤(.lobby-card, 버튼)만 pointer-events 회수
+   ========================================================= */
+#ui-overlay {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+#ui-overlay button,
+#ui-overlay a,
+#ui-overlay input,
+#ui-overlay .lobby-card { pointer-events: auto; }
+
+/* =========================================================
+   로비 카드 (스플래시 + 폼)
+   ========================================================= */
+.lobby { width: 100%; max-width: 480px; padding: 24px; display: flex; justify-content: center;
+  position: relative; z-index: 2;  /* 커튼(z-index:1) 위에 카드가 보이도록 */ }
+.lobby--hidden { display: none; }
+
+.lobby-card {
+  width: 100%;
+  background: rgba(251, 247, 239, .94);
+  backdrop-filter: blur(6px);
+  border-radius: 26px;
+  padding: 32px 26px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(0,0,0,.35);
+  animation: lobbyIn .5s ease;
+}
+@keyframes lobbyIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+.lobby-splash-label {
+  font-family: "GmarketSans", sans-serif; letter-spacing: .18em;
+  font-size: .78rem; color: var(--sea-dk); margin: 0 0 14px;
+}
+.lobby-title {
+  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 2.2rem;
+  margin: 0; color: var(--ink);
+}
+.lobby-title span { color: var(--coral); font-size: 1.5rem; }
+.lobby-sub { margin: 10px 0 26px; color: #7d756b; font-size: .9rem; }
+
+.lobby-form { display: grid; gap: 18px; text-align: left; margin-bottom: 26px; }
+.field-label { display: block; font-size: .82rem; color: #7d756b; margin-bottom: 8px; font-weight: 600; }
+.field input {
+  width: 100%; font-family: inherit; font-size: 1rem; padding: 13px 15px;
+  border: 1px solid #e8dfce; border-radius: 14px; background: #fff; color: var(--ink);
+}
+.field input:focus { outline: 2px solid var(--sea); border-color: transparent; }
+
+.gender-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gender-btn {
+  font-family: inherit; font-size: 1rem; padding: 13px 0; cursor: pointer;
+  border: 1px solid #e8dfce; border-radius: 14px; background: #fff; color: var(--ink);
+  transition: all .15s;
+}
+.gender-btn[aria-pressed="true"] { background: var(--sea); border-color: var(--sea); color: #fff; font-weight: 700; }
+
+.lobby-next, .lobby-enter, .lobby-prev {
+  font-family: "GmarketSans", sans-serif; font-weight: 500; font-size: 1rem;
+  border: none; border-radius: 16px; padding: 15px; cursor: pointer;
+}
+.lobby-next, .lobby-enter { width: 100%; background: var(--coral); color: #fff; }
+.lobby-next:disabled { background: #d9d2c8; cursor: not-allowed; }
+
+.lobby-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+.lobby-prev { background: #fff; border: 1px solid #e8dfce; color: var(--ink); }
+
+/* =========================================================
+   캐릭터 커스텀
+   ========================================================= */
+.lobby-card--custom { padding-top: 26px; }
+.char-preview {
+  width: 100%; aspect-ratio: 1 / 1; max-height: 38vh;
+  border-radius: 18px; margin: 0 auto 20px;
+  background: repeating-linear-gradient(45deg, rgba(143,197,214,.18) 0 12px, rgba(143,197,214,.28) 12px 24px);
+  display: flex; align-items: center; justify-content: center;
+}
+.char-preview-hint { color: var(--sea-dk); font-size: .85rem; text-align: center; opacity: .8; }
+
+/* =========================================================
+   캐릭터 꾸미기 (step2) — 프리뷰는 Unity 전체화면, 컨트롤은 하단 시트
+   ========================================================= */
+.custom-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 12;
+  pointer-events: auto;
+  background: rgba(251, 247, 239, .98);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -10px 34px rgba(0,0,0,.28);
+  padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 12px;
+  /* iOS Safari: position:fixed + backdrop-filter 가 뷰포트 변할 때(주소창/툴바 토글) 시트가 사라지는
+     글리치 방지 → backdrop-filter 제거(배경이 거의 불투명이라 차이 거의 없음) + GPU 레이어 고정 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  animation: sheetUp .25s ease;
+}
+@keyframes sheetUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateZ(0); opacity: 1; } }
+.custom-title {
+  margin: 0; text-align: center;
+  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1rem; color: var(--coral);
+}
+/* 카테고리 탭 (가로 스크롤) */
+.custom-tabs { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.custom-tabs::-webkit-scrollbar { display: none; }
+.cs-tab {
+  flex: 0 0 auto; font-family: inherit; font-size: .9rem; font-weight: 600;
+  padding: 8px 14px; border: 1px solid #e8dfce; border-radius: 999px;
+  background: #fff; color: #7d756b; cursor: pointer; white-space: nowrap;
+}
+.cs-tab.active { background: var(--sea); border-color: var(--sea); color: #fff; }
+/* ‹ 라벨 › */
+.custom-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.cs-arrow {
+  width: 48px; height: 48px; flex: none; border: 1px solid #e8dfce; border-radius: 50%;
+  background: #fff; color: var(--sea-dk); font-size: 1.6rem; line-height: 1; cursor: pointer;
+}
+.cs-arrow:disabled { opacity: .35; cursor: default; }
+.cs-label {
+  min-width: 120px; text-align: center;
+  font-family: "GmarketSans", sans-serif; font-weight: 500; font-size: 1.05rem; color: var(--ink);
+}
+
+/* =========================================================
+   불투명 배경 커튼 — Wedding 3D 씬이 열리기 전까지 Unity 화면을 가린다
+   (로딩/로비 동안 Unity 로비가 배경에 비치지 않도록 웹 배경색으로 덮음)
+   ========================================================= */
+#venue-curtain {
+  position: fixed; inset: 0; z-index: 1;     /* Unity 캔버스 위, 로비 카드 아래 */
+  pointer-events: auto;                      /* 그 뒤 Unity로 클릭 안 넘어가게 */
+  background: linear-gradient(165deg, #cfe6ec 0%, #eef0ea 55%, #f6e7ec 100%);
+}
+#venue-curtain.curtain--hidden { display: none; }  /* 입장(Wedding 로드) 후 제거 → 3D 드러남 */
+
+/* =========================================================
+   로딩 화면 (Unity 로비 준비 / 입장 처리 대기)
+   ========================================================= */
+.loading-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+/* 역동적 로딩 스피너: 확실히 도는 단일 링 + 가속·감속 + 펄스 */
+.spinner {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 5px solid rgba(143,197,214,.22);
+  border-top-color: var(--sea-dk);
+  border-right-color: var(--sea-dk);
+  animation: spinDynamic 0.9s ease-in-out infinite;
+}
+@keyframes spinDynamic {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  50%  { transform: rotate(180deg) scale(1.1);  }
+  100% { transform: rotate(360deg) scale(1);    }
+}
+.loading-text {
+  font-family: "GmarketSans", sans-serif; font-weight: 500;
+  font-size: 1.05rem; color: var(--ink); margin: 4px 0 0;
+}
+.loading-sub { font-size: .85rem; color: #7d756b; margin: 0; }
+.link-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: "GmarketSans", sans-serif; font-size: .85rem;
+  color: #7d756b; text-decoration: underline; padding: 4px; margin-top: 2px;
+}
+.lobby-notice {
+  font-size: .82rem; color: #a85; background: #fbf3e8;
+  border: 1px solid #efddc4; border-radius: 10px; padding: 8px 10px; margin: 10px 0 0;
+}
+
+/* =========================================================
+   예식장 씬 플레이어 UI (입장 후) — 미니맵 등은 Unity에서 구현
+   ========================================================= */
+.play-ui--hidden { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+}
+
+/* =========================================================
+   방명록 / 사진앨범 오버레이 (유니티 FlowerDecoZone / PictureZone → 웹)
+   ========================================================= */
+.venue-modal {
+  position: fixed; left: 0; right: 0; top: 0;
+  height: 100vh; height: 100dvh;   /* dvh: 브라우저 URL바 제외한 실제 보이는 높이 */
+  z-index: 60;
+  /* safe-area(노치/홈바) + 위아래 여백 → 상단 X버튼이 URL바/노치에 안 가림 */
+  padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(35, 28, 32, .55); pointer-events: auto;
+}
+.venue-modal[hidden] { display: none; }
+.venue-modal-card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto;
+  background: #fff; border-radius: 16px; padding: 22px 18px 24px; position: relative;
+  -webkit-overflow-scrolling: touch;
+}
+.venue-modal-close {
+  position: absolute; top: 10px; right: 12px; width: 32px; height: 32px;
+  border: none; border-radius: 50%; background: #f0e3e8; color: #8a4d63;
+  font-size: 1rem; line-height: 1; cursor: pointer;
+}
+.venue-modal-title {
+  text-align: center; font-family: "GmarketSans", sans-serif; font-weight: 700;
+  font-size: 1.2rem; color: var(--coral); margin: 2px 0 16px;
+}
+
+/* 사진 앨범 그리드 */
+#venue-album { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.album-item {
+  aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden;
+  background: repeating-linear-gradient(45deg, #f2eae6 0 12px, #eae0db 12px 24px);
+  display: flex; align-items: center; justify-content: center;
+}
+.album-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.album-item--empty span { color: #b29aa4; font-size: .85rem; }
+.album-empty { text-align: center; color: #b29aa4; padding: 24px 0; margin: 0; }
+
+/* 방명록 위젯 (guestbook.js — 청첩장과 동일한 룩) */
+.venue-modal .gb-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; text-align: left; }
+.venue-modal .gb-card { background: var(--sand); border-radius: 12px; padding: 12px 14px; cursor: pointer; min-width: 0; position: relative; }
+.venue-modal .gb-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.venue-modal .gb-who { font-weight: 700; font-size: .9rem; color: var(--ink); }
+.venue-modal .gb-meta { display: inline-flex; align-items: center; gap: 6px; color: #9b9089; }
+.venue-modal .gb-when { font-size: .72rem; color: #9b9089; }
+.venue-modal .gb-more { font-size: .7rem; color: #9b9089; transition: transform .2s; }
+.venue-modal .gb-card.open .gb-more { transform: rotate(180deg); }
+.venue-modal .gb-text { margin: 6px 0 0; font-size: .9rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: anywhere; }
+.venue-modal .gb-card.open .gb-text { white-space: normal; }
+.venue-modal .gb-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 12px 0 4px; }
+.venue-modal .gb-pg { width: 34px; height: 34px; border: 1px solid #e4d8d0; background: var(--paper); border-radius: 50%; cursor: pointer; font-size: 1.05rem; line-height: 1; color: var(--ink); }
+.venue-modal .gb-pg:disabled { opacity: .35; cursor: default; }
+.venue-modal .gb-page { font-size: .85rem; color: #9b9089; min-width: 54px; text-align: center; }
+.venue-modal .gb-form { display: grid; gap: 10px; margin: 16px 0 0; }
+.venue-modal .gb-form input, .venue-modal .gb-form textarea {
+  font-family: inherit; font-size: .95rem; padding: 11px 13px; border: 1px solid #e4d8d0;
+  border-radius: 10px; background: var(--paper); color: var(--ink); resize: none; width: 100%;
+}
+.venue-modal .gb-name[readonly] { background: #f1ece9; color: #9b9089; cursor: not-allowed; }
+.venue-modal .gb-form button {
+  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .98rem; padding: 12px;
+  border: none; border-radius: 10px; background: var(--coral); color: #fff; cursor: pointer;
+}
+.venue-modal .gb-empty { color: #9b9089; font-size: .88rem; text-align: center; padding: 10px; }
+
+/* =========================================================
+   우상단 햄버거 메뉴 (도움말 / 미니맵 / 방명록)
+   ========================================================= */
+.venue-menu-btn {
+  position: fixed; top: 14px; left: 14px; z-index: 31;
+  width: 44px; height: 44px; padding: 0; pointer-events: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  background: rgba(255,255,255,.92); border: none; border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18); cursor: pointer;
+}
+.venue-menu-btn[hidden] { display: none; }
+.venue-menu-btn span {
+  display: block; width: 20px; height: 2.5px; border-radius: 2px;
+  background: var(--sea-dk); transition: transform .2s, opacity .2s;
+}
+.venue-menu-btn.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+.venue-menu-btn.open span:nth-child(2) { opacity: 0; }
+.venue-menu-btn.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+/* 메뉴 열렸을 때 바깥 탭으로 닫기 (탭이 Unity로 새어가 캐릭터가 움직이지 않게 가림) */
+.venue-menu-backdrop { position: fixed; inset: 0; z-index: 29; pointer-events: auto; background: transparent; }
+.venue-menu-backdrop[hidden] { display: none; }
+
+.venue-menu {
+  position: fixed; top: 64px; left: 14px; z-index: 31;
+  width: 180px; padding: 8px; pointer-events: auto;
+  background: rgba(251,247,239,.97); backdrop-filter: blur(6px);
+  border-radius: 16px; box-shadow: 0 12px 34px rgba(0,0,0,.28);
+  display: grid; gap: 4px; animation: menuIn .16s ease;
+}
+.venue-menu[hidden] { display: none; }
+@keyframes menuIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.venue-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  font-family: "GmarketSans", sans-serif; font-size: .98rem; font-weight: 500;
+  text-align: left; padding: 12px 14px; border: none; border-radius: 11px;
+  background: transparent; color: var(--ink); cursor: pointer; text-decoration: none;
+}
+.venue-menu-item:hover, .venue-menu-item:active { background: rgba(143,197,214,.18); }
+.venue-menu-ic { font-size: 1.1rem; line-height: 1; }
+
+/* =========================================================
+   도움말 (조작 방법) 본문
+   ========================================================= */
+.help-body { display: grid; gap: 4px; text-align: left; }
+.help-step { display: flex; gap: 12px; align-items: flex-start; margin-top: 8px; }
+.help-num {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--coral); color: #fff; font-weight: 700; font-size: .9rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.help-h { margin: 2px 0 4px; font-size: 1rem; color: var(--ink); font-weight: 700; }
+.help-p { margin: 0; font-size: .9rem; line-height: 1.5; color: #6b635a; }
+.help-p b { color: var(--sea-dk); }
+.help-illust { background: #f7faf6; border-radius: 14px; padding: 10px 8px; margin: 4px 0 2px; }
+.help-svg { width: 100%; height: auto; display: block; }
