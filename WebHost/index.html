@@ -183,6 +183,19 @@
         </div>
       </div>
 
+      <!-- NPC(비니) 대화창 (Unity '말걸기' → 동물의 숲 스타일 하단 대화 바) -->
+      <div class="npc-dialog" id="npc-dialog" hidden>
+        <div class="npc-dialog-box">
+          <div class="npc-avatar" id="npc-avatar">🌊</div>
+          <div class="npc-bubble">
+            <span class="npc-name" id="npc-name">비니</span>
+            <p class="npc-text" id="npc-text"></p>
+          </div>
+          <span class="npc-next" id="npc-next" aria-hidden="true">▶</span>
+          <button class="npc-close" id="npc-close" type="button" aria-label="닫기">✕</button>
+        </div>
+      </div>
+
       <!-- 미니맵은 유니티 패널(MinimapSystem)이 렌더 — 메뉴의 "미니맵"이 SendMessage 로 연다 -->
     </div>
 
@@ -269,6 +282,7 @@
       var gbModal = document.getElementById("gb-modal");
       var albumModal = document.getElementById("album-modal");
       var helpModal = document.getElementById("help-modal");
+      var npcDialog = document.getElementById("npc-dialog");
       var gbWidget = null, albumDone = false;
 
       // 유니티에 신호 보내기(이동 잠금/해제 — 방명록/도움말용)
@@ -279,7 +293,7 @@
       }
       function lockMove() { sendUnity("OnVenueOverlayOpened"); }      // 창 열림 → 이동 잠금
       function anyModalOpen() {
-        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden;
+        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden;
       }
       // 모든 창이 닫혔으면 유니티 이동 잠금 해제
       function notifyIfAllClosed() { if (!anyModalOpen()) sendUnity("OnVenueOverlayClosed"); }
@@ -323,6 +337,79 @@
         }).join("");
         albumDone = true;
       }
+
+      // ===== NPC(비니) 대화창 — 동물의 숲 스타일 (한 줄씩 타자 → 탭하면 다음/닫힘) =====
+      var npcTextEl = document.getElementById("npc-text");
+      var npcNameEl = document.getElementById("npc-name");
+      var npcAvatarEl = document.getElementById("npc-avatar");
+      var npcNextEl = document.getElementById("npc-next");
+      var npcLines = [], npcIndex = 0, npcTyping = null, npcFullText = "";
+
+      var NPC_DEFAULT = {
+        name: "비니", emoji: "🌊",
+        lines: [
+          "안녕! 나는 이 예식장을 안내하는 비니라고 해. 🌊",
+          "화면을 꾹 누르면 그 방향으로 걸어가. 손을 떼면 멈춰!",
+          "꽃 장식 근처에선 방명록을, 사진 앞에서는 앨범을 열 수 있어.",
+          "형원이랑 지수의 새 출발을 축하해줘서 고마워. 즐겁게 놀다 가! 💐",
+        ],
+      };
+
+      // 유니티 → 웹: NPC 대화창 열기 (name = 화자 이름, 예 "비니")
+      window.OnOpenNpcDialog = function (name) {
+        gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true;
+        var npc = (window.WEDDING && window.WEDDING.npc) || NPC_DEFAULT;
+        npcLines = (npc.lines && npc.lines.length) ? npc.lines : NPC_DEFAULT.lines;
+        npcNameEl.textContent = (name && String(name).trim()) || npc.name || "비니";
+        npcAvatarEl.textContent = npc.emoji || NPC_DEFAULT.emoji;
+        npcIndex = 0;
+        npcDialog.hidden = false;
+        showNpcLine(0);
+        lockMove();   // 대화창 실제로 열렸을 때만 이동 잠금(에디터 등 안 뜨면 이동 가능)
+      };
+
+      // 한 줄을 타자기처럼 노출
+      function showNpcLine(i) {
+        if (npcTyping) { clearInterval(npcTyping); npcTyping = null; }
+        npcFullText = npcLines[i] || "";
+        npcTextEl.textContent = "";
+        npcNextEl.classList.add("hide");
+        var pos = 0;
+        npcTyping = setInterval(function () {
+          pos++;
+          npcTextEl.textContent = npcFullText.slice(0, pos);
+          if (pos >= npcFullText.length) {
+            clearInterval(npcTyping); npcTyping = null;
+            npcNextEl.classList.remove("hide");
+          }
+        }, 28);
+      }
+
+      // 탭: 타자 중이면 전체 즉시 노출(스킵), 아니면 다음 줄 / 마지막이면 닫기
+      function npcAdvance() {
+        if (npcTyping) {
+          clearInterval(npcTyping); npcTyping = null;
+          npcTextEl.textContent = npcFullText;
+          npcNextEl.classList.remove("hide");
+          return;
+        }
+        if (npcIndex < npcLines.length - 1) { npcIndex++; showNpcLine(npcIndex); }
+        else closeNpc();
+      }
+
+      function closeNpc() {
+        if (npcTyping) { clearInterval(npcTyping); npcTyping = null; }
+        npcDialog.hidden = true;
+        notifyIfAllClosed();   // → OnVenueOverlayClosed → 이동잠금 해제 + NpcDialogCamera.Unfocus()
+      }
+
+      npcDialog.addEventListener("click", function (e) {
+        if (e.target.closest("#npc-close")) return;   // 닫기 버튼은 아래서 처리
+        npcAdvance();
+      });
+      document.getElementById("npc-close").addEventListener("click", function (e) {
+        e.stopPropagation(); closeNpc();
+      });
 
       // ===== 우상단 햄버거 메뉴 =====
       var menuBtn = document.getElementById("venue-menu-btn");
