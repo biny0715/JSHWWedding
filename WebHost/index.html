@@ -3,7 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <!-- height=device-height 는 레이아웃 뷰포트를 과대화(하단 앵커 요소가 툴바에 가림)해 제거.
+         viewport-fit=cover 로 env(safe-area-inset-*) 가 실제 값을 갖게 함(노치/홈바 대응 활성화). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>운림제 모바일 예식장 · 형원 ♥ 지수</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
     <link rel="stylesheet" href="TemplateData/style.css">

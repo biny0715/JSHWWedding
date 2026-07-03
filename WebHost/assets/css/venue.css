@@ -27,7 +27,12 @@ html, body {
   width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
   background: #2a3b40;
   font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif;
+  /* iOS 더블탭 스마트 줌 차단 — 버튼 연타가 더블탭 줌으로 인식되면 시각적 뷰포트가 확대되어
+     하단 시트가 화면 밖으로 나간다(iOS 는 user-scalable=no 를 무시).
+     manipulation 은 팬/핀치는 허용, 더블탭 줌만 막아 스크롤 회귀 없음 */
+  touch-action: manipulation;
 }
+#ui-overlay button, #ui-overlay input, #ui-overlay textarea, #ui-overlay a { touch-action: manipulation; }
 
 /* Unity 전체화면 (배경 레이어) */
 #unity-container { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0; background: #2a3b40; }
@@ -123,32 +128,33 @@ html, body {
 /* =========================================================
    캐릭터 꾸미기 (step2) — 프리뷰는 Unity 전체화면, 컨트롤은 하단 시트
    ========================================================= */
-/* step2 섹션을 오버레이 전체에 앵커 — 시트가 fixed 없이도 화면 하단에 붙게 하는 틀.
-   iOS Safari 는 하단 탭 연타로 툴바가 토글될 때 fixed 요소를 화면 밖으로 밀어버리는
-   버그가 있어(커스텀 시트만 간혹 사라지던 원인), 시트를 fixed 에서 분리한다. */
+/* step2: 소형 뷰포트(100svh) 높이 컬럼 + 시트를 일반 플로우(flex-end)로 하단 정렬.
+   - bottom 앵커·fixed·강제 레이어 승격(translateZ)을 전부 제거 — iOS 툴바 토글/더블탭 줌/
+     컴포지터 재배치·이빅션 버그의 영향권에서 시트를 구조적으로 제외한다.
+   - svh = 툴바가 펼쳐져 있어도 항상 보이는 높이(iOS 15.4+). 미지원 브라우저는 100vh 폴백.
+   - top/left/right 의 음수 env() 는 #ui-overlay 의 safe-area 패딩(패딩 박스 기준 배치)을
+     상쇄해 svh 계산 기준을 실제 뷰포트 상단에 맞춘다(env 미지원/0 이면 자연히 no-op). */
 .lobby--step2 {
-  position: absolute; inset: 0;
+  position: absolute;
+  top: calc(-1 * env(safe-area-inset-top, 0px));
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  height: 100vh; height: 100svh;
   max-width: none; padding: 0;
   z-index: 12;
+  display: flex; flex-direction: column; justify-content: flex-end;
 }
+.lobby--step2.lobby--hidden { display: none; }  /* display:flex 가 hidden 을 이기지 못하게 명시 */
 .custom-sheet {
-  position: absolute; left: 0; right: 0; bottom: 0;   /* fixed → absolute (오버레이 기준) */
-  /* #ui-overlay 의 safe-area 패딩을 상쇄해 이전(fixed)과 같은 위치 유지 */
-  margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
   pointer-events: auto;
   background: rgba(251, 247, 239, .98);
   border-radius: 22px 22px 0 0;
   box-shadow: 0 -10px 34px rgba(0,0,0,.28);
   padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
   display: flex; flex-direction: column; gap: 12px;
-  /* iOS Safari: backdrop-filter + 뷰포트 변화 글리치 방지(기존 픽스 유지) + GPU 레이어 고정 */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   animation: sheetUp .25s ease;
 }
-@keyframes sheetUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateZ(0); opacity: 1; } }
+@keyframes sheetUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 .custom-title {
   margin: 0; text-align: center;
   font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1rem; color: var(--coral);

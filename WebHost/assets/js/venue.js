@@ -48,7 +48,12 @@
   var enterBtn = document.getElementById("lobby-enter-btn");
   var genderBtns = Array.prototype.slice.call(document.querySelectorAll(".gender-btn"));
 
-  function hide(el) { if (el) el.classList.add("lobby--hidden"); }
+  function hide(el) {
+    // 계측: step2(커스텀 시트)가 숨겨지는 모든 경로를 스택과 함께 기록 — 재발 시 원인 특정용
+    if (el === step2 && el && !el.classList.contains("lobby--hidden"))
+      console.warn("[venue] step2 숨김 발생:", new Error().stack);
+    if (el) el.classList.add("lobby--hidden");
+  }
   function show(el) { if (el) el.classList.remove("lobby--hidden"); }
   function setDisplay(el, v) { if (el) el.style.display = v; }
 
@@ -78,8 +83,17 @@
     show(loading); hide(step1); hide(step2);
   }
   function showLobby() {        // Unity 로비 (재)진입 → 입력(또는 자동 입장)
+    // 멱등화: 이미 로비 UI 상태이고(커스텀 step2 포함) 입장 중도 아니며 표시할 안내문도 없으면
+    // 아무것도 리셋하지 않는다 — 중복 LobbyReady 신호가 커스텀 중인 시트를 날리지 못하게.
+    if (lobbyReady && !state.entered && !pendingNotice &&
+        step2 && !step2.classList.contains("lobby--hidden")) return;
     lobbyReady = true;
     clearTimeout(lobbyFallbackTimer);
+    // [핵심 버그 수정] 입장 실패로 로비에 복귀해도 doEnter 가 걸어둔 25s(reveal)/12s(지연안내)
+    // 타이머가 살아남아, 커스텀 도중 25초 시점에 reveal()이 터져 시트를 숨기던 문제.
+    // 로비 복귀 시 반드시 함께 해제한다.
+    clearTimeout(sceneFallbackTimer);
+    clearTimeout(slowTimer);
     state.entered = false;       // 로비로 (재)진입 → 입장 상태 리셋(재입장 가능)
 
     if (autoEnter && state.name.trim() && !hasAttemptedAuto) {
@@ -102,6 +116,9 @@
     hide(loading); show(step1); hide(step2);
   }
   function reveal() {           // Wedding 씬 로드 완료 → 3D 노출
+    // 입장 진행 중이 아니면 무시 — 뒤늦은 폴백 타이머/중복 SceneReady 가 로비 UI(커스텀 시트)를
+    // 숨기지 못하게 봉인. (정상 입장은 doEnter 가 entered=true 를 먼저 세우므로 영향 없음)
+    if (!state.entered) return;
     clearTimeout(sceneFallbackTimer);
     clearTimeout(slowTimer);
     hide(loading); hide(step1); hide(step2);
@@ -175,6 +192,10 @@
   });
 
   nextBtn.addEventListener("click", function () {
+    // 이름 입력 키보드가 남긴 뷰포트 팬(offsetTop) 청소 — 시트가 화면 밖에서 시작하는 것 방지
+    // (iOS WebKit: 키보드 닫힘 후 visualViewport.offsetTop 이 복원되지 않는 버그 대응)
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    window.scrollTo(0, 0);
     hide(step1); show(step2);
     if (curtain) curtain.classList.add("curtain--hidden");   // Unity 프리뷰 노출
     initLookForGender();                                     // 프리뷰 성별 룩 보장
@@ -192,23 +213,28 @@
   });
 
   /* =====================================================================
-   * iOS Safari 글리치 워치독 — 커스텀 시트(.custom-sheet)가 간혹 사라지는 문제
-   *  position:fixed 요소는 뷰포트 변화(주소창/툴바 토글, 회전)나 앱/탭 복귀 때
-   *  iOS 컴포지터가 레이어를 떨궈 "안 그려지는" 경우가 있다(CSS translateZ 고정만으론 재발).
-   *  → 해당 이벤트마다 시트를 display 토글로 강제 재페인트해서 즉시 복구한다.
+   * iOS 뷰포트 복구 워치독 — 시트가 "시각적 뷰포트 밖으로 밀리는" 문제 복구
+   *  원인 부류: 더블탭 스마트 줌(터치액션으로 예방), 키보드 잔여 팬, 툴바 토글 시
+   *  visual viewport 가 layout viewport 에서 어긋나면 하단 시트가 화면 밖에 놓인다.
+   *  → 어긋남(스크롤/팬)을 감지하면 지오메트리를 원위치로 복구한다.
+   *  (이전의 display 토글 재페인트는 지오메트리를 못 고치고, 툴바 애니메이션 중
+   *   120Hz 연속 발화로 탭을 씹는 부작용이 있어 폐기)
    * ===================================================================== */
   var czSheet = step2 ? step2.querySelector(".custom-sheet") : null;
-  var repinQueued = false;
+  var repinLast = 0;
   function repinSheet() {
-    if (!czSheet || !step2 || step2.classList.contains("lobby--hidden") || repinQueued) return;
-    repinQueued = true;
-    requestAnimationFrame(function () {
-      repinQueued = false;
-      czSheet.style.animation = "none";      // 복구 시 등장 애니메이션 재생 방지
-      czSheet.style.display = "none";
-      void czSheet.offsetHeight;             // reflow 강제 → 레이어 재부착
-      czSheet.style.display = "";
-    });
+    if (!czSheet || !step2 || step2.classList.contains("lobby--hidden")) return;
+    var now = Date.now();
+    if (now - repinLast < 250) return;    // 툴바 애니메이션 중 연속 발화 제한
+    repinLast = now;
+    var vv = window.visualViewport;
+    var panned = window.scrollY > 0 || (vv && (vv.offsetTop > 1 || vv.offsetLeft > 1));
+    if (panned) {
+      // 계측: 복구 순간의 뷰포트 상태 기록 (scale>1 이면 줌, offsetTop>0 이면 팬)
+      console.warn("[venue] 시트 지오메트리 복구: scrollY=" + window.scrollY +
+        (vv ? " vvTop=" + vv.offsetTop.toFixed(1) + " scale=" + vv.scale.toFixed(2) : ""));
+      window.scrollTo(0, 0);
+    }
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", repinSheet);
@@ -218,8 +244,10 @@
   window.addEventListener("orientationchange", function () { setTimeout(repinSheet, 300); });
   window.addEventListener("pageshow", repinSheet);
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) setTimeout(repinSheet, 100);   // 앱/탭 복귀 직후 복구
+    if (!document.hidden) setTimeout(repinSheet, 100);   // 앱/탭 복귀 직후 점검
   });
+  // 순수 탭 연타 중엔 위 이벤트들이 안 뜰 수 있어 시트 터치 자체로도 점검
+  if (czSheet) czSheet.addEventListener("touchend", function () { setTimeout(repinSheet, 50); });
 
   /* =====================================================================
    * 캐릭터 커스텀 (step2)
@@ -351,6 +379,12 @@
     var la = savedLook.split(",").map(Number);
     if (la.length === 12 && !la.some(isNaN)) cz.look = la;
   }
+
+  // 계측: WebGL 컨텍스트 손실(GPU 압박) 감지 — 시트 소실과의 상관 확인용
+  var unityCanvas = document.getElementById("unity-canvas");
+  if (unityCanvas) unityCanvas.addEventListener("webglcontextlost", function () {
+    console.warn("[venue] WebGL context lost — GPU 압박/복귀 이벤트");
+  });
 
   showLoading("예식장을 불러오는 중…");
   // Unity 로비 준비 신호가 끝내 안 오면(로드 실패 등) 최소한 입력은 할 수 있게 노출
