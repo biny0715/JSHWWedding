@@ -14,10 +14,13 @@ namespace JSHWWedding
     public class PlayerNameTag : MonoBehaviourPun
     {
         [Header("이름표 설정")]
+        [Tooltip("머리 위 높이(m). 캐릭터의 실제 스케일(lossyScale)로 자동 보정됨 → 0.5배 NPC도 같은 값으로 맞음.")]
         [SerializeField] private float heightOffset = 2.0f;
         [SerializeField] private float fontSize = 4f;
         [SerializeField] private Color textColor = Color.white;
         [SerializeField] private Color outlineColor = new Color(0.27f, 0.22f, 0.24f, 1f);
+        [Tooltip("비우면 Photon 닉네임 사용. 채우면 그 이름으로 고정(NPC 등 PhotonView 없이도 가능).")]
+        public string overrideName = "";
 
         [Header("거리 보정(멀어져도 화면상 일정 크기 → 작게 뭉개져 흰 박스 생기는 것 방지)")]
         [Tooltip("이 거리에서의 크기를 기준으로 화면상 크기를 일정 유지")]
@@ -30,16 +33,20 @@ namespace JSHWWedding
 
         private void Start()
         {
-            string playerName =
-                (photonView != null && photonView.Owner != null && !string.IsNullOrEmpty(photonView.Owner.NickName))
-                    ? photonView.Owner.NickName
-                    : PhotonNetwork.NickName;
+            string playerName;
+            if (!string.IsNullOrEmpty(overrideName))
+                playerName = overrideName;   // 고정 이름(NPC): photonView 접근 안 함(없어도 경고 안 남)
+            else
+                playerName =
+                    (photonView != null && photonView.Owner != null && !string.IsNullOrEmpty(photonView.Owner.NickName))
+                        ? photonView.Owner.NickName
+                        : PhotonNetwork.NickName;
             if (string.IsNullOrEmpty(playerName)) playerName = "하객";
 
             var go = new GameObject("NameTag");
             var tmp = go.AddComponent<TextMeshPro>();   // 이 호출이 Transform→RectTransform 교체
             tagTf = go.transform;                        // ★ 교체 이후에 캐시
-            tagTf.position = transform.position + Vector3.up * heightOffset;
+            tagTf.position = transform.position + Vector3.up * (heightOffset * transform.lossyScale.y);
 
             tmp.text = playerName;
             tmp.alignment = TextAlignmentOptions.Center;
@@ -54,7 +61,7 @@ namespace JSHWWedding
         private void LateUpdate()
         {
             if (tagTf == null) return;
-            tagTf.position = transform.position + Vector3.up * heightOffset;  // 머리 위 따라가기
+            tagTf.position = transform.position + Vector3.up * (heightOffset * transform.lossyScale.y);  // 머리 위 따라가기(스케일 보정)
             if (cam == null) cam = Camera.main;
             if (cam == null) return;
             tagTf.rotation = cam.transform.rotation;                          // 항상 카메라 정면

@@ -13,6 +13,7 @@ namespace JSHWWedding.Customization.EditorTools
     public static class BrideNpcSetup
     {
         const string JisuPath = "Assets/Photon/PhotonUnityNetworking/Demos/PunBasics-Tutorial/Resources/Jisu.prefab";
+        const string BrideName = "박지수";   // 머리 위 이름표
 
         // 제거 순서: RequireComponent 의존(PhotonView 를 요구하는 것들)을 먼저, PhotonView 는 마지막.
         static readonly string[] StripOrder = {
@@ -44,6 +45,10 @@ namespace JSHWWedding.Customization.EditorTools
 
             int removed = 0;
             foreach (var typeName in StripOrder) removed += StripByTypeName(npc, typeName);
+
+            // 머리 위 이름표(고정 이름) — PhotonView 없이도 overrideName 으로 표시
+            var nameTag = npc.AddComponent<PlayerNameTag>();
+            nameTag.overrideName = BrideName;
 
             string left = "";
             foreach (var c in npc.GetComponents<Component>()) left += c.GetType().Name + " ";

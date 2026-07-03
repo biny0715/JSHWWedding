@@ -6,6 +6,7 @@
 // → 에디터/모바일 로컬테스트처럼 창이 안 뜨는 경우엔 잠기지 않아 그대로 이동 가능.
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
@@ -14,11 +15,13 @@ namespace JSHWWedding
 {
     public class InteractionZone : MonoBehaviour
     {
-        public enum ZoneAction { Guestbook, Album }
+        public enum ZoneAction { Guestbook, Album, Talk }
 
         [Header("동작")]
         public ZoneAction action = ZoneAction.Guestbook;
         public string buttonLabel = "방명록";
+        [Tooltip("Talk 액션일 때 말 거는 NPC(대화창 화자) 이름")]
+        public string talkName = "비니";
 
         [Header("표시")]
         [Tooltip("플레이어가 이 거리 안에 들어오면 버튼 표시")]
@@ -60,7 +63,8 @@ namespace JSHWWedding
             float dx = Mathf.Max(0f, Mathf.Abs(player.position.x - c.x) - zoneBounds.extents.x);
             float dz = Mathf.Max(0f, Mathf.Abs(player.position.z - c.z) - zoneBounds.extents.z);
             float horiz = Mathf.Sqrt(dx * dx + dz * dz);
-            SetShown(horiz <= activateRadius && !UIInputLock.Locked);
+            // NPC 대화 카메라가 켜져 있는 동안엔 버튼 숨김(대화 종료 시 Active=false → 다시 표시)
+            SetShown(horiz <= activateRadius && !UIInputLock.Locked && !NpcDialogCamera.Active);
 
             if (shown && ui != null)
             {
@@ -91,8 +95,9 @@ namespace JSHWWedding
             // 여기서 낙관적으로 잠그면, 에디터/모바일 로컬테스트처럼 창이 안 뜨는 경우 잠금이 안 풀려 못 움직이게 됨.
             SetShown(false);
             string nick = string.IsNullOrEmpty(PhotonNetwork.NickName) ? "하객" : PhotonNetwork.NickName;
-            if (action == ZoneAction.Guestbook) VenueWeb.OpenGuestbook(nick);
-            else VenueWeb.OpenAlbum();
+            if (action == ZoneAction.Guestbook) VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
+            else if (action == ZoneAction.Album) VenueWeb.OpenAlbum();
+            else { NpcDialogCamera.Focus(transform); VenueWeb.OpenNpcDialog(talkName, "npc"); }   // Talk: NPC 정면 즉시컷 + 대화창
         }
 
         void BuildUI()
@@ -144,6 +149,34 @@ namespace JSHWWedding
             }
             Gizmos.color = new Color(0.95f, 0.6f, 0.7f, 0.6f);
             Gizmos.DrawWireSphere(new Vector3(c.x, c.y, c.z), activateRadius);
+        }
+
+        // ===== '비니' 등 NPC에 '말걸기' 존을 런타임 자동 부착 (씬 수동 배치 불필요) =====
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void BootstrapNpcTalk()
+        {
+            SceneManager.sceneLoaded += (scene, mode) => { if (scene.name == "Wedding") AttachTalkTo("비니"); };
+            if (SceneManager.GetActiveScene().name == "Wedding") AttachTalkTo("비니");
+        }
+
+        static void AttachTalkTo(string npcName)
+        {
+            // 이미 부착돼 있으면 스킵
+            foreach (var z in FindObjectsByType<InteractionZone>(FindObjectsSortMode.None))
+                if (z.action == ZoneAction.Talk && z.talkName == npcName) return;
+
+            // PlayerNameTag.overrideName 으로 NPC(GM_Char) 찾기
+            Transform target = null;
+            foreach (var tag in FindObjectsByType<PlayerNameTag>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (tag != null && tag.overrideName == npcName) { target = tag.transform; break; }
+            if (target == null) { Debug.LogWarning($"[InteractionZone] NPC '{npcName}' 못 찾음 → '말걸기' 버튼 생략"); return; }
+
+            var zone = target.gameObject.AddComponent<InteractionZone>();
+            zone.action = ZoneAction.Talk;
+            zone.buttonLabel = "말걸기";
+            zone.talkName = npcName;
+            zone.activateRadius = 4f;
+            zone.buttonHeight = 4f;   // NPC 머리 위. 필요시 조절
         }
     }
 }
