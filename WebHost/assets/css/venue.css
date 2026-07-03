@@ -21,7 +21,10 @@
   --coral: #e9a39c; --ink: #4a443d; --paper: #fbf7ef;
 }
 
-*, *::before, *::after { box-sizing: border-box; }  /* 입력칸 등 width:100% overflow 방지 */
+/* box-sizing: 입력칸 등 width:100% overflow 방지.
+   tap-highlight: 전체화면 탭 타깃(NPC 대화창·획득 팝업·메뉴 백드롭)이 Android 계열 브라우저에서
+   탭할 때 화면 전체가 파랗게 깜빡이는 기본 하이라이트 제거 */
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body {
   width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
