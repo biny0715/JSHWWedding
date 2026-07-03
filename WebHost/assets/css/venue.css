@@ -123,16 +123,25 @@ html, body {
 /* =========================================================
    캐릭터 꾸미기 (step2) — 프리뷰는 Unity 전체화면, 컨트롤은 하단 시트
    ========================================================= */
+/* step2 섹션을 오버레이 전체에 앵커 — 시트가 fixed 없이도 화면 하단에 붙게 하는 틀.
+   iOS Safari 는 하단 탭 연타로 툴바가 토글될 때 fixed 요소를 화면 밖으로 밀어버리는
+   버그가 있어(커스텀 시트만 간혹 사라지던 원인), 시트를 fixed 에서 분리한다. */
+.lobby--step2 {
+  position: absolute; inset: 0;
+  max-width: none; padding: 0;
+  z-index: 12;
+}
 .custom-sheet {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 12;
+  position: absolute; left: 0; right: 0; bottom: 0;   /* fixed → absolute (오버레이 기준) */
+  /* #ui-overlay 의 safe-area 패딩을 상쇄해 이전(fixed)과 같은 위치 유지 */
+  margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
   pointer-events: auto;
   background: rgba(251, 247, 239, .98);
   border-radius: 22px 22px 0 0;
   box-shadow: 0 -10px 34px rgba(0,0,0,.28);
   padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
   display: flex; flex-direction: column; gap: 12px;
-  /* iOS Safari: position:fixed + backdrop-filter 가 뷰포트 변할 때(주소창/툴바 토글) 시트가 사라지는
-     글리치 방지 → backdrop-filter 제거(배경이 거의 불투명이라 차이 거의 없음) + GPU 레이어 고정 */
+  /* iOS Safari: backdrop-filter + 뷰포트 변화 글리치 방지(기존 픽스 유지) + GPU 레이어 고정 */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   backface-visibility: hidden;
