@@ -120,6 +120,8 @@ namespace JSHWWedding
         {
             if (scene.name == "Wedding")
             {
+                // 씬 로드 전에 도착해 있던 화환 개수를 반영 (웹도 SceneReady 후 재전송하지만 이중 안전망)
+                if (pendingWreathCount >= 0) WreathViewZone.ApplyCount(pendingWreathCount);
 #if UNITY_WEBGL && !UNITY_EDITOR
                 WeddingSceneReady();
 #else
@@ -198,7 +200,39 @@ namespace JSHWWedding
         public void OnVenueOverlayClosed()
         {
             UIInputLock.Locked = false;
+            NpcDialogCamera.Unfocus();   // NPC 대화 카메라였다면 게임플레이 뷰로 복귀(아니면 무시)
             Debug.Log("[WebLobbyBridge] 오버레이 닫힘 → 이동 잠금 해제");
+        }
+
+        /// <summary>웹 좌상단 "길 안내" 토글 → 화면 밖 목표(예식장/신부대기실/연회장) 화살표 On/Off.
+        /// 웹: unityInstance.SendMessage("WebBridge","SetGuideArrows","1"/"0")</summary>
+        public void SetGuideArrows(string v)
+        {
+            WayfindingArrows.Enabled = (v == "1" || v == "true" || v == "on" || v == "On");
+            Debug.Log("[WebLobbyBridge] 길 안내 화살표: " + (WayfindingArrows.Enabled ? "On" : "Off"));
+        }
+
+        // ===== 웹 → 유니티 : NPC(비니) 대화창 결과 =====
+        // 이동 잠금 해제는 대화창 닫힘 시 웹이 보내는 OnVenueOverlayClosed 가 담당. 여기선 퀘스트 결과만 처리(추후 확장).
+        /// <summary>웹 대화창에서 퀘스트 수락. 웹: SendMessage("WebBridge","OnNpcQuestAccepted")</summary>
+        public void OnNpcQuestAccepted()
+        {
+            QuestManager.Instance?.Accept();
+            Debug.Log("[WebLobbyBridge] NPC 퀘스트 수락");
+        }
+        /// <summary>웹 대화창에서 퀘스트 거절(다시 말걸면 처음부터 다시 제안). 웹: SendMessage("WebBridge","OnNpcQuestRejected")</summary>
+        public void OnNpcQuestRejected() { Debug.Log("[WebLobbyBridge] NPC 퀘스트 거절"); }
+
+        // ===== 웹 → 유니티 : 축하 화환(Firestore 실시간 구독) =====
+        private static int pendingWreathCount = -1;   // Wedding 씬 로드 전에 도착한 개수(씬 로드 후 적용)
+
+        /// <summary>웹: SendMessage("WebBridge","SetWreathCount","n") — CelebrateFlowers 자식 0..n-1 활성화.
+        /// 웹이 씬 준비(WeddingSceneReady) 후와 화환 변경(onSnapshot) 때마다 보낸다.</summary>
+        public void SetWreathCount(string countStr)
+        {
+            if (!int.TryParse(countStr, out int count) || count < 0) return;
+            pendingWreathCount = count;
+            WreathViewZone.ApplyCount(count);   // Wedding 씬이 아니면 내부에서 무시(로드 후 재적용)
         }
 
         // ===== 웹 → 유니티 : 캐릭터 커스텀 (로비) =====

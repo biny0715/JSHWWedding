@@ -190,9 +190,47 @@
           <div class="npc-bubble">
             <span class="npc-name" id="npc-name">비니</span>
             <p class="npc-text" id="npc-text"></p>
+            <div class="npc-choices" id="npc-choices" hidden>
+              <button type="button" class="npc-choice npc-choice--no" id="npc-reject">거절</button>
+              <button type="button" class="npc-choice npc-choice--yes" id="npc-accept">수락</button>
+            </div>
+            <!-- 퀘스트 완료 → 화환 축하 문구 입력 (작성자 = 캐릭터 이름 자동, 수정불가) -->
+            <div class="npc-wreath-form" id="npc-wreath-form" hidden>
+              <input type="text" id="wreath-name" readonly>
+              <textarea id="wreath-text" maxlength="50" rows="2" placeholder="화환에 걸 축하 문구 (50자 이내)"></textarea>
+              <p class="wreath-note" id="wreath-note" hidden>화환 자리(15개)가 모두 찼어요. 그래도 메시지는 신랑신부에게 전달돼요!</p>
+              <button type="button" id="wreath-submit">화환 걸기</button>
+            </div>
           </div>
           <span class="npc-next" id="npc-next" aria-hidden="true">▶</span>
           <button class="npc-close" id="npc-close" type="button" aria-label="닫기">✕</button>
+        </div>
+      </div>
+
+      <!-- 퀘스트 HUD (우측 상단, 유니티 미니맵 아래) — 표시는 유니티(QuestManager)가 WeddingQuestHud 로 제어 -->
+      <div class="quest-hud" id="quest-hud" hidden>
+        <p class="quest-hud-title" id="quest-hud-title">물건을 찾아라</p>
+        <p class="quest-hud-count" id="quest-hud-count">0 / 0 개</p>
+      </div>
+
+      <!-- 물건 획득 팝업 (그림 + "'OOO'을 획득했습니다 / 남은 물건 n개") — 탭하거나 잠시 후 자동 닫힘 -->
+      <div class="pickup-toast" id="pickup-toast" hidden>
+        <div class="pickup-card">
+          <div class="pickup-art" id="pickup-art"></div>
+          <p class="pickup-title" id="pickup-title"></p>
+          <p class="pickup-sub" id="pickup-sub"></p>
+        </div>
+      </div>
+
+      <!-- 축하 화환 보기 (화환 근접 '보기' 버튼 → 작성자/축하 문구) -->
+      <div class="venue-modal" id="wreath-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="wreath-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">축하 화환</h2>
+          <div class="wreath-view">
+            <p class="wreath-author" id="wreath-author"></p>
+            <p class="wreath-msg" id="wreath-msg"></p>
+          </div>
         </div>
       </div>
 
@@ -278,23 +316,57 @@
     <!-- 방명록 / 사진앨범 / 메뉴(도움말·미니맵·방명록) 오버레이 -->
     <script type="module">
       import { mountGuestbook } from "./assets/js/guestbook.js";
+      import { subscribeWreaths, addWreath } from "./assets/js/wreaths.js";
 
       var gbModal = document.getElementById("gb-modal");
       var albumModal = document.getElementById("album-modal");
       var helpModal = document.getElementById("help-modal");
       var npcDialog = document.getElementById("npc-dialog");
+      var wreathModal = document.getElementById("wreath-modal");
       var gbWidget = null, albumDone = false;
 
-      // 유니티에 신호 보내기(이동 잠금/해제 — 방명록/도움말용)
-      function sendUnity(method) {
-        if (window.unityInstance) {
-          try { window.unityInstance.SendMessage("WebBridge", method); } catch (e) {}
-        }
+      // 유니티에 신호 보내기 (arg 는 선택 — SetWreathCount 처럼 값이 필요한 메서드용)
+      function sendUnity(method, arg) {
+        if (!window.unityInstance) return;
+        try {
+          if (arg === undefined) window.unityInstance.SendMessage("WebBridge", method);
+          else window.unityInstance.SendMessage("WebBridge", method, arg);
+        } catch (e) {}
       }
       function lockMove() { sendUnity("OnVenueOverlayOpened"); }      // 창 열림 → 이동 잠금
       function anyModalOpen() {
-        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden;
+        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden;
       }
+
+      // 디바이스 식별자(localStorage) — 퀘스트 1회 제한·화환 기록용. 브라우저 데이터 삭제 시 재발급됨.
+      function deviceId() {
+        try {
+          var id = localStorage.getItem("jshw_device_id");
+          if (!id) {
+            id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+               : "d-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+            localStorage.setItem("jshw_device_id", id);
+          }
+          return id;
+        } catch (e) { return "anon"; }
+      }
+
+      // ===== 축하 화환 — Firestore 실시간 구독 =====
+      // 목록(작성순)이 바뀔 때마다 유니티에 개수를 보내 CelebrateFlowers 자식(슬롯 0~14)을 켠다.
+      var wreathList = null;   // null = 아직 로드 전
+      function pushWreathCount() {
+        if (wreathList) sendUnity("SetWreathCount", String(Math.min(wreathList.length, 15)));
+      }
+      subscribeWreaths(function (list) {
+        wreathList = list;
+        pushWreathCount();
+      });
+      // Wedding 씬이 (재)로드될 때마다 재전송 — venue.js 의 기존 핸들러를 체이닝
+      var prevSceneReady = window.OnWeddingSceneReady;
+      window.OnWeddingSceneReady = function () {
+        if (typeof prevSceneReady === "function") prevSceneReady();
+        pushWreathCount();
+      };
       // 모든 창이 닫혔으면 유니티 이동 잠금 해제
       function notifyIfAllClosed() { if (!anyModalOpen()) sendUnity("OnVenueOverlayClosed"); }
 
@@ -338,35 +410,83 @@
         albumDone = true;
       }
 
-      // ===== NPC(비니) 대화창 — 동물의 숲 스타일 (한 줄씩 타자 → 탭하면 다음/닫힘) =====
+      // ===== NPC(비니) 대화창 — 동물의 숲 스타일 + 퀘스트 분기 =====
+      // mode: "npc"(비니 퀘스트) / "celebrate"(감사 대화 → 방명록)
+      // stateJson: 유니티 QuestManager 상태 {"accepted":bool,"found":n,"total":n}
       var npcTextEl = document.getElementById("npc-text");
       var npcNameEl = document.getElementById("npc-name");
       var npcAvatarEl = document.getElementById("npc-avatar");
       var npcNextEl = document.getElementById("npc-next");
+      var npcChoicesEl = document.getElementById("npc-choices");
       var npcLines = [], npcIndex = 0, npcTyping = null, npcFullText = "";
+      var npcOnEnd = "close";   // 마지막 줄 뒤 동작: "close" | "choice"(수락/거절) | "guestbook"(방명록 열기)
+      var npcCfg = null;        // 현재 대화의 npc 설정(수락 버튼에서 재사용)
 
       var NPC_DEFAULT = {
         name: "비니", emoji: "🌊",
-        lines: [
-          "안녕! 나는 이 예식장을 안내하는 비니라고 해. 🌊",
-          "화면을 꾹 누르면 그 방향으로 걸어가. 손을 떼면 멈춰!",
-          "꽃 장식 근처에선 방명록을, 사진 앞에서는 앨범을 열 수 있어.",
-          "형원이랑 지수의 새 출발을 축하해줘서 고마워. 즐겁게 놀다 가! 💐",
-        ],
+        questIntro: ["안녕! 나는 비니라고 해.", "잃어버린 결혼식 물품들을 찾아줄 수 있을까?"],
+        questAccepted: ["고마워! 물품들은 예식장 어딘가에 숨겨져 있어.", "다 찾으면 다시 여기로 와!"],
+        questProgress: ["아직 {remain}개 남았어! ({found}/{total})"],
+        questComplete: ["전부 찾아줬구나! 정말 고마워!"],
+        questDone: ["와줘서 정말 고마워 💐"],
+        celebrate: ["축하해주러 와줘서 고마워!", "방명록에 축하 메시지를 남겨줄래?"],
       };
 
-      // 유니티 → 웹: NPC 대화창 열기 (name = 화자 이름, 예 "비니")
-      window.OnOpenNpcDialog = function (name) {
+      // 퀘스트 완료(화환 제출) 여부 — 디바이스(브라우저) 기준 1회 제한
+      function questDoneFlag() {
+        try { return localStorage.getItem("jshw_quest_done") === "1"; } catch (e) { return false; }
+      }
+      function fillTokens(s, st) {
+        var remain = Math.max(0, (st.total | 0) - (st.found | 0));
+        return s.replace(/\{found\}/g, st.found | 0).replace(/\{total\}/g, st.total | 0).replace(/\{remain\}/g, remain);
+      }
+
+      // 유니티 → 웹: 대화창 열기 (jslib OpenWeddingNpcDialog)
+      window.OnOpenNpcDialog = function (name, mode, stateJson) {
         gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true;
-        var npc = (window.WEDDING && window.WEDDING.npc) || NPC_DEFAULT;
-        npcLines = (npc.lines && npc.lines.length) ? npc.lines : NPC_DEFAULT.lines;
-        npcNameEl.textContent = (name && String(name).trim()) || npc.name || "비니";
-        npcAvatarEl.textContent = npc.emoji || NPC_DEFAULT.emoji;
+        npcCfg = (window.WEDDING && window.WEDDING.npc) || NPC_DEFAULT;
+        var st = { accepted: false, found: 0, total: 0 };
+        try {
+          var p = JSON.parse(stateJson || "{}");
+          st.accepted = !!p.accepted; st.found = p.found | 0; st.total = p.total | 0;
+        } catch (e) {}
+
+        npcNameEl.textContent = (name && String(name).trim()) || npcCfg.name || "비니";
+        npcAvatarEl.textContent = npcCfg.emoji || NPC_DEFAULT.emoji;
+
+        var wreathRemain = wreathList ? Math.max(0, 15 - wreathList.length) : null;
+
+        var lines, onEnd = "close";
+        if (mode === "celebrate") { lines = npcCfg.celebrate; onEnd = "guestbook"; }
+        else if (questDoneFlag()) lines = npcCfg.questDone;                               // 이미 완료한 기기 → 재도전 불가
+        else if (!st.accepted) {                                                          // 제안 → 수락/거절
+          lines = (npcCfg.questIntro || []).slice();
+          // 화환 자리가 이미 다 찼어도 퀘스트는 가능 + 메시지 전달 안내
+          if (wreathRemain === 0 && npcCfg.questIntroFullNote) lines.push(npcCfg.questIntroFullNote);
+          onEnd = "choice";
+        }
+        else if (st.total > 0 && st.found >= st.total) { lines = npcCfg.questComplete; onEnd = "wreath"; }  // 모두 찾음 → 화환 입력
+        else {                                                                            // 진행 중: 남은 개수 + 화환 자리
+          lines = (npcCfg.questProgress || []).map(function (s) { return fillTokens(s, st); });
+          if (wreathRemain !== null && npcCfg.questProgressWreath)
+            lines.push(npcCfg.questProgressWreath.replace(/\{wreathRemain\}/g, wreathRemain));
+        }
+
+        startNpc(lines, onEnd);
+        lockMove();   // 대화창 실제로 열렸을 때만 이동 잠금(에디터 등 안 뜨면 안 잠겨 이동 가능)
+      };
+
+      var wreathFormEl = document.getElementById("npc-wreath-form");
+
+      function startNpc(lines, onEnd) {
+        npcLines = (lines && lines.length) ? lines : ["..."];
+        npcOnEnd = onEnd || "close";
         npcIndex = 0;
+        npcChoicesEl.hidden = true;
+        wreathFormEl.hidden = true;
         npcDialog.hidden = false;
         showNpcLine(0);
-        lockMove();   // 대화창 실제로 열렸을 때만 이동 잠금(에디터 등 안 뜨면 이동 가능)
-      };
+      }
 
       // 한 줄을 타자기처럼 노출
       function showNpcLine(i) {
@@ -385,8 +505,9 @@
         }, 28);
       }
 
-      // 탭: 타자 중이면 전체 즉시 노출(스킵), 아니면 다음 줄 / 마지막이면 닫기
+      // 탭: 타자 중이면 전체 즉시 노출(스킵), 아니면 다음 줄 / 마지막이면 onEnd 동작
       function npcAdvance() {
+        if (!npcChoicesEl.hidden || !wreathFormEl.hidden) return;   // 선택지/입력폼 표시 중엔 탭으로 안 넘어감
         if (npcTyping) {
           clearInterval(npcTyping); npcTyping = null;
           npcTextEl.textContent = npcFullText;
@@ -394,22 +515,128 @@
           return;
         }
         if (npcIndex < npcLines.length - 1) { npcIndex++; showNpcLine(npcIndex); }
+        else if (npcOnEnd === "choice") { npcNextEl.classList.add("hide"); npcChoicesEl.hidden = false; }
+        else if (npcOnEnd === "guestbook") { closeNpcSilent(); window.OnOpenGuestbook(npcNameEl.textContent); }
+        else if (npcOnEnd === "wreath") { openWreathForm(); }
         else closeNpc();
+      }
+
+      // 화환 축하 문구 입력폼 열기 (작성자 = 캐릭터 이름 자동입력 + 수정불가)
+      function openWreathForm() {
+        npcNextEl.classList.add("hide");
+        document.getElementById("wreath-name").value = savedName();
+        document.getElementById("wreath-note").hidden = !(wreathList && wreathList.length >= 15);
+        wreathFormEl.hidden = false;
       }
 
       function closeNpc() {
         if (npcTyping) { clearInterval(npcTyping); npcTyping = null; }
+        npcChoicesEl.hidden = true;
+        wreathFormEl.hidden = true;
         npcDialog.hidden = true;
         notifyIfAllClosed();   // → OnVenueOverlayClosed → 이동잠금 해제 + NpcDialogCamera.Unfocus()
       }
+      // 다른 창(방명록)으로 이어질 때: 이동잠금을 풀지 않고 대화창만 닫음
+      function closeNpcSilent() {
+        if (npcTyping) { clearInterval(npcTyping); npcTyping = null; }
+        npcChoicesEl.hidden = true;
+        wreathFormEl.hidden = true;
+        npcDialog.hidden = true;
+      }
 
       npcDialog.addEventListener("click", function (e) {
-        if (e.target.closest("#npc-close")) return;   // 닫기 버튼은 아래서 처리
+        if (e.target.closest("#npc-close") || e.target.closest("#npc-choices") || e.target.closest("#npc-wreath-form")) return;   // 버튼/폼은 각자 처리
         npcAdvance();
       });
       document.getElementById("npc-close").addEventListener("click", function (e) {
         e.stopPropagation(); closeNpc();
       });
+
+      // 수락 → 유니티에 알리고(QuestManager.Accept) 수락 대사로 이어감. 거절 → 종료(다시 말걸면 처음부터).
+      document.getElementById("npc-accept").addEventListener("click", function (e) {
+        e.stopPropagation();
+        sendUnity("OnNpcQuestAccepted");
+        startNpc((npcCfg && npcCfg.questAccepted) || NPC_DEFAULT.questAccepted, "close");
+      });
+      document.getElementById("npc-reject").addEventListener("click", function (e) {
+        e.stopPropagation();
+        sendUnity("OnNpcQuestRejected");
+        closeNpc();
+      });
+
+      // 화환 걸기(제출): Firestore 저장 → 이 기기 퀘스트 완료 처리 → 감사 대사.
+      // 제출 순간 15자리가 그 사이 다 찼는지 재확인 → 찼으면 "그래도 메시지는 전달" 안내(저장은 됨).
+      document.getElementById("wreath-submit").addEventListener("click", async function (e) {
+        e.stopPropagation();
+        var msgEl = document.getElementById("wreath-text");
+        var msg = msgEl.value.trim();
+        if (!msg) { alert("축하 문구를 입력해주세요."); return; }
+        var btn = this, label = btn.textContent;
+        btn.disabled = true; btn.textContent = "거는 중…";
+        try {
+          var wasFull = wreathList && wreathList.length >= 15;
+          await addWreath(savedName(), msg, deviceId());
+          try { localStorage.setItem("jshw_quest_done", "1"); } catch (err) {}
+          questHud.hidden = true;   // 퀘스트 끝 → HUD 정리
+          msgEl.value = "";
+          wreathFormEl.hidden = true;
+          startNpc((wasFull ? npcCfg.wreathFullThanks : npcCfg.wreathThanks) || ["고마워!"], "close");
+        } catch (err) {
+          alert(err.message || "저장에 실패했어요. 잠시 후 다시 시도해주세요.");
+        } finally {
+          btn.disabled = false; btn.textContent = label;
+        }
+      });
+
+      // ===== 물건 획득 팝업 — 유니티 PickupZone '줍기' 가 푸시 =====
+      var pickupToast = document.getElementById("pickup-toast");
+      var pickupTimer = null;
+      window.OnWeddingItemPickup = function (json) {
+        var d = {};
+        try { d = JSON.parse(json || "{}"); } catch (e) {}
+        var items = (window.WEDDING && window.WEDDING.questItems) || {};
+        var it = items[d.item];
+        var label = (it && it.label) || d.item || "물건";
+        document.getElementById("pickup-art").innerHTML = (it && it.svg) || "";
+        document.getElementById("pickup-title").textContent = "'" + label + "'을(를) 획득했습니다!";
+        var remain = Math.max(0, (d.total | 0) - (d.found | 0));
+        document.getElementById("pickup-sub").textContent =
+          remain > 0 ? "남은 물건 " + remain + "개" : "모든 물건을 찾았다! 비니에게 가자 ✨";
+        pickupToast.hidden = false;
+        if (pickupTimer) clearTimeout(pickupTimer);
+        pickupTimer = setTimeout(function () { pickupToast.hidden = true; }, 2800);
+      };
+      pickupToast.addEventListener("click", function () { pickupToast.hidden = true; });
+
+      // ===== 축하 화환 보기 — 유니티 WreathViewZone '보기' 가 호출 =====
+      window.OnOpenWreathView = function (slot) {
+        var w = (wreathList || [])[slot | 0];
+        document.getElementById("wreath-author").textContent = w ? (w.author + " 님의 축하") : "축하 화환";
+        document.getElementById("wreath-msg").textContent = w ? w.message : "아직 비어있는 화환이에요.";
+        wreathModal.hidden = false;
+        lockMove();
+      };
+      document.getElementById("wreath-close").addEventListener("click", function () {
+        wreathModal.hidden = true; notifyIfAllClosed();
+      });
+
+      // ===== 퀘스트 HUD (우측 상단, 미니맵 아래) — 유니티 QuestManager 가 푸시 =====
+      var questHud = document.getElementById("quest-hud");
+      var questHudTitle = document.getElementById("quest-hud-title");
+      var questHudCount = document.getElementById("quest-hud-count");
+      window.OnWeddingQuestHud = function (json) {
+        var d = {};
+        try { d = JSON.parse(json || "{}"); } catch (e) {}
+        if (!d.state || d.state === "hidden") { questHud.hidden = true; return; }
+        if (d.state === "complete") {
+          questHudTitle.textContent = "모두 찾았다!";
+          questHudCount.textContent = "비니에게 가자 ✨";
+        } else {
+          questHudTitle.textContent = "물건을 찾아라";
+          questHudCount.textContent = (d.found | 0) + " / " + (d.total | 0) + " 개";
+        }
+        questHud.hidden = false;
+      };
 
       // ===== 우상단 햄버거 메뉴 =====
       var menuBtn = document.getElementById("venue-menu-btn");

@@ -68,6 +68,48 @@ mergeInto(LibraryManager.library, {
         window.OnPreviewReady(json);
       }
     } catch (e) { console.error("PreviewReady error:", e); }
+  },
+
+  // NPC(비니) 말걸기 → 웹 대화창 열기 (동물의 숲 스타일)
+  // mode: "npc"(비니 퀘스트) / "celebrate"(감사 대화 → 방명록). stateJson: 퀘스트 진행 상태.
+  OpenWeddingNpcDialog: function (namePtr, modePtr, statePtr) {
+    try {
+      var name = UTF8ToString(namePtr);
+      var mode = UTF8ToString(modePtr);
+      var state = UTF8ToString(statePtr);
+      if (typeof window !== "undefined" && typeof window.OnOpenNpcDialog === "function") {
+        window.OnOpenNpcDialog(name, mode, state);
+      }
+    } catch (e) { console.error("OpenWeddingNpcDialog error:", e); }
+  },
+
+  // 퀘스트 HUD 갱신 (우측 상단 '물건을 찾아라 X/n') — QuestManager 가 수락/줍기 때 호출
+  WeddingQuestHud: function (jsonPtr) {
+    try {
+      var json = UTF8ToString(jsonPtr);
+      if (typeof window !== "undefined" && typeof window.OnWeddingQuestHud === "function") {
+        window.OnWeddingQuestHud(json);
+      }
+    } catch (e) { console.error("WeddingQuestHud error:", e); }
+  },
+
+  // 물건 획득 → 웹 획득 팝업("'OOO'을 획득했습니다 / 남은 물건 n개" + 그림)
+  WeddingItemPickup: function (jsonPtr) {
+    try {
+      var json = UTF8ToString(jsonPtr);
+      if (typeof window !== "undefined" && typeof window.OnWeddingItemPickup === "function") {
+        window.OnWeddingItemPickup(json);
+      }
+    } catch (e) { console.error("WeddingItemPickup error:", e); }
+  },
+
+  // 화환(WreathViewZone) '보기' → 웹 팝업(작성자/축하 문구). slot: 0~14
+  OpenWeddingWreath: function (slot) {
+    try {
+      if (typeof window !== "undefined" && typeof window.OnOpenWreathView === "function") {
+        window.OnOpenWreathView(slot | 0);
+      }
+    } catch (e) { console.error("OpenWeddingWreath error:", e); }
   }
 
 });

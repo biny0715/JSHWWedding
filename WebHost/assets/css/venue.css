@@ -348,7 +348,7 @@ html, body {
 .npc-dialog {
   position: fixed; inset: 0; z-index: 60;
   display: flex; align-items: flex-end; justify-content: center;
-  padding: 0 12px calc(18px + env(safe-area-inset-bottom));
+  padding: 0 10px calc(6px + env(safe-area-inset-bottom));
   pointer-events: auto; cursor: pointer;
 }
 .npc-dialog[hidden] { display: none; }
@@ -357,16 +357,16 @@ html, body {
   display: flex; align-items: flex-start; gap: 12px;
   background: rgba(251, 247, 239, .98);
   border: 3px solid var(--sea);
-  border-radius: 22px;
-  padding: 16px 18px 20px;
+  border-radius: 20px;
+  padding: 11px 15px 13px;
   box-shadow: 0 14px 40px rgba(0,0,0,.35);
   animation: npcIn .22s ease;
 }
 @keyframes npcIn { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 .npc-avatar {
-  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  flex: none; width: 44px; height: 44px; border-radius: 50%;
   background: var(--sea); display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; box-shadow: 0 3px 10px rgba(91,159,179,.4);
+  font-size: 1.35rem; box-shadow: 0 3px 10px rgba(91,159,179,.4);
 }
 .npc-bubble { flex: 1 1 auto; min-width: 0; text-align: left; }
 .npc-name {
@@ -392,3 +392,71 @@ html, body {
   font-size: 1rem; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.2);
 }
 @media (prefers-reduced-motion: reduce) { .npc-next { animation: none; } }
+
+/* 퀘스트 선택지 (수락/거절) — 대화 마지막 줄 뒤에 표시 */
+.npc-choices { display: flex; gap: 10px; margin-top: 12px; }
+.npc-choices[hidden] { display: none; }
+.npc-choice {
+  flex: 1; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .95rem;
+  padding: 11px 0; border: none; border-radius: 12px; cursor: pointer;
+}
+.npc-choice--yes { background: var(--coral); color: #fff; }
+.npc-choice--no { background: #fff; border: 1px solid #e8dfce; color: #7d756b; }
+
+/* =========================================================
+   퀘스트 HUD — 우측 상단(유니티 미니맵 아래). 미니맵과 겹치면 top 만 조절.
+   pointer-events:none → 터치는 Unity 캔버스로 통과(이동 조작 방해 없음)
+   ========================================================= */
+.quest-hud {
+  position: fixed; top: calc(env(safe-area-inset-top, 0px) + 150px); right: 12px; z-index: 30;
+  pointer-events: none;
+  background: rgba(251, 247, 239, .93); border-radius: 12px; padding: 8px 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18); text-align: center;
+}
+.quest-hud[hidden] { display: none; }
+.quest-hud-title { margin: 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .75rem; color: var(--sea-dk); }
+.quest-hud-count { margin: 3px 0 0; font-size: .92rem; font-weight: 700; color: var(--ink); }
+
+/* =========================================================
+   물건 획득 팝업 — 그림 + "'OOO'을 획득했습니다 / 남은 물건 n개"
+   탭하면 즉시 닫힘, 아니어도 잠시 후 자동 닫힘
+   ========================================================= */
+.pickup-toast {
+  position: fixed; inset: 0; z-index: 70;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto; background: rgba(35, 28, 32, .35); cursor: pointer;
+}
+.pickup-toast[hidden] { display: none; }
+.pickup-card {
+  max-width: 300px; text-align: center;
+  background: rgba(251, 247, 239, .98); border: 3px solid var(--sea);
+  border-radius: 20px; padding: 18px 28px 16px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.35); animation: npcIn .22s ease;
+}
+.pickup-art svg { width: 108px; height: 108px; display: block; margin: 0 auto; }
+.pickup-title { margin: 8px 0 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1rem; color: var(--ink); }
+.pickup-sub { margin: 6px 0 0; font-size: .88rem; font-weight: 700; color: var(--sea-dk); }
+
+/* 화환 축하 문구 입력폼 (비니 대화창 안) */
+.npc-wreath-form { display: grid; gap: 8px; margin-top: 12px; }
+.npc-wreath-form[hidden] { display: none; }
+.npc-wreath-form input, .npc-wreath-form textarea {
+  font-family: inherit; font-size: .95rem; padding: 10px 12px;
+  border: 1px solid #e8dfce; border-radius: 10px; background: #fff; color: var(--ink);
+  resize: none; width: 100%;
+}
+.npc-wreath-form input[readonly] { background: #f1ece9; color: #9b9089; }
+.npc-wreath-form button {
+  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .95rem;
+  padding: 11px; border: none; border-radius: 10px; background: var(--coral); color: #fff; cursor: pointer;
+}
+.npc-wreath-form button:disabled { background: #d9d2c8; cursor: default; }
+.wreath-note {
+  margin: 0; font-size: .8rem; color: #a85; background: #fbf3e8;
+  border: 1px solid #efddc4; border-radius: 8px; padding: 6px 9px;
+}
+
+/* 축하 화환 보기 팝업 본문 */
+.wreath-view { text-align: center; padding: 8px 4px 6px; }
+.wreath-author { margin: 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1.02rem; color: var(--sea-dk); }
+.wreath-msg { margin: 12px 0 2px; font-size: 1rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
