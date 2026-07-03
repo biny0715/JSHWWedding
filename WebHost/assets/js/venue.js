@@ -73,7 +73,7 @@
   var autoEnter = false;
   var hasAttemptedAuto = false;   // 자동입장은 첫 진입에만(끊김→재진입 루프 방지)
   var pendingNotice = "";         // 끊김 등 안내문(다음 입력화면에 표시)
-  var lobbyFallbackTimer, sceneFallbackTimer, slowTimer;
+  var lobbyFallbackTimer, slowTimer;
 
   /* ===== 상태 전환 ===== */
   function showLoading(text, sub) {
@@ -89,11 +89,10 @@
         step2 && !step2.classList.contains("lobby--hidden")) return;
     lobbyReady = true;
     clearTimeout(lobbyFallbackTimer);
-    // [핵심 버그 수정] 입장 실패로 로비에 복귀해도 doEnter 가 걸어둔 25s(reveal)/12s(지연안내)
-    // 타이머가 살아남아, 커스텀 도중 25초 시점에 reveal()이 터져 시트를 숨기던 문제.
-    // 로비 복귀 시 반드시 함께 해제한다.
-    clearTimeout(sceneFallbackTimer);
+    // [핵심 버그 수정] 입장 실패로 로비에 복귀해도 doEnter 가 걸어둔 12s(지연안내) 타이머와
+    // 입장 신호 재시도가 살아남지 못하게 로비 복귀 시 반드시 함께 해제한다.
     clearTimeout(slowTimer);
+    clearTimeout(enterRetryTimer);
     state.entered = false;       // 로비로 (재)진입 → 입장 상태 리셋(재입장 가능)
 
     if (autoEnter && state.name.trim() && !hasAttemptedAuto) {
@@ -116,11 +115,11 @@
     hide(loading); show(step1); hide(step2);
   }
   function reveal() {           // Wedding 씬 로드 완료 → 3D 노출
-    // 입장 진행 중이 아니면 무시 — 뒤늦은 폴백 타이머/중복 SceneReady 가 로비 UI(커스텀 시트)를
+    // 입장 진행 중이 아니면 무시 — 뒤늦은 중복 SceneReady 가 로비 UI(커스텀 시트)를
     // 숨기지 못하게 봉인. (정상 입장은 doEnter 가 entered=true 를 먼저 세우므로 영향 없음)
     if (!state.entered) return;
-    clearTimeout(sceneFallbackTimer);
     clearTimeout(slowTimer);
+    clearTimeout(enterRetryTimer);
     hide(loading); hide(step1); hide(step2);
     if (curtain) curtain.classList.add("curtain--hidden");
     playUI.classList.remove("play-ui--hidden");
@@ -134,21 +133,40 @@
   window.OnWeddingDisconnected = function (cause) {
     console.warn("[venue] Photon 끊김:", cause);
     window.__lastDisconnect = cause;   // 콘솔에서 확인용
-    // 끊기면 Unity가 곧 로비로 되돌리고 OnWeddingLobbyReady 가 와서 입력칸이 다시 뜸.
     pendingNotice = "연결이 끊겨 로비로 돌아왔어요 (사유: " + cause + "). 다시 입장해 주세요.";
+    // [수정] 로비에서 접속 실패(자동입장 포함)하면 Unity는 씬을 다시 로드하지 않아
+    // LobbyReady 가 다시 오지 않는다 → 여기서 직접 입력 화면으로 복귀(타이머 해제 포함).
+    // 예식장에서 끊긴 경우에도 곧 도착할 LobbyReady 의 showLobby 는 멱등이라 안전.
+    if (state.entered) showLobby();
   };
 
   /* ===== 웹 → 유니티 ===== */
   function sendEnterToUnity() {
     var u = window.unityInstance;
-    if (!u) return;
+    if (!u) return false;
     try {
       u.SendMessage("WebBridge", "SetPlayerName", state.name.trim() || "하객");
       if (cz.look) u.SendMessage("WebBridge", "ApplyLook", cz.look.join(","));   // 커스텀 룩 전달
       u.SendMessage("WebBridge", "EnterVenue");
+      return true;
     } catch (e) {
       console.warn("[venue] Unity SendMessage 실패:", e);
+      return false;
     }
+  }
+
+  // [수정] unityInstance 준비 전(리로드 직후 등)에 입장 신호가 조용히 사라지던 문제:
+  // 잠깐 재시도하고, 끝내 실패하면 안내와 함께 입력 화면으로 복귀시킨다.
+  var enterRetryTimer;
+  function sendEnterWithRetry(triesLeft) {
+    if (sendEnterToUnity()) return;
+    if (triesLeft > 0) {
+      enterRetryTimer = setTimeout(function () { sendEnterWithRetry(triesLeft - 1); }, 500);
+      return;
+    }
+    console.warn("[venue] Unity 입장 신호 전달 실패(unityInstance 없음)");
+    pendingNotice = "예식장 연결에 실패했어요. 다시 입장해 주세요.";
+    showLobby();
   }
 
   /* ===== 입장 처리(버튼 / 자동 공통) ===== */
@@ -161,15 +179,15 @@
     lsSet(NAME_KEY, state.name.trim());
     if (state.gender) lsSet(GENDER_KEY, state.gender);
 
-    sendEnterToUnity();
+    sendEnterWithRetry(20);   // unityInstance 준비 전이면 최대 10초 재시도
     showLoading((state.name.trim() || "하객") + "님, 예식장에 입장하는 중…");
     setDisplay(changeNameLink, "");   // 입장 중에는 "다른 이름으로 입장" 노출
 
-    // 접속 지연 안내 + 안전 폴백
+    // 접속 지연 안내. (기존의 25s 강제 reveal 폴백은 제거 — 입장 실패 시 모든 UI 를 숨겨
+    // "커스텀/입력 UI 가 아예 없는 화면"에 사용자를 가두던 원인. SceneReady 는 jslib 직접
+    // 호출이라 유실이 사실상 없고, 실패/지연 복구는 12s 안내(새로고침)와 끊김 신호가 담당)
     clearTimeout(slowTimer);
-    clearTimeout(sceneFallbackTimer);
     slowTimer = setTimeout(showSlowGuide, 12000);
-    sceneFallbackTimer = setTimeout(reveal, 25000);  // 신호 누락 대비 최종 노출
   }
 
   function showSlowGuide() {

@@ -129,7 +129,9 @@ namespace JSHWWedding
             float halfW = Screen.width * 0.5f, halfH = Screen.height * 0.5f;
             float marginX = Mathf.Min(edgeMargin * uiScale, halfW * 0.45f);
             float ex = halfW - marginX;      // 좌우 끝에서 안쪽으로 들어온 X(px, 중심 기준)
-            float baseY = -halfH * 0.5f;     // 화면 아래쪽(중심에서 아래로 50%)
+            // 모바일 브라우저는 스크롤이 없는 이 페이지에서 하단 툴바(iOS 주소창/삼성인터넷 툴바+내비바)가
+            // 항상 떠서 100vh 캔버스의 아래 13~20% 를 가린다 → 라벨(화살표 아래)이 잘리지 않게 넉넉히 위로 도킹.
+            float baseY = -halfH * 0.3f;     // 화면 아래쪽(하단에서 35% 지점)
             float stepY = 96f * uiScale;     // 같은 쪽 겹침 방지 간격
             int leftN = 0, rightN = 0;
 
