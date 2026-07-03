@@ -31,6 +31,8 @@ namespace JSHWWedding.Customization
         [Tooltip("캐릭터가 카메라를 바라보게 하는 yaw. 등이 보이면 0↔180 바꿔")]
         public float charYaw = 0f;
         public float turnSpeed = 0f;
+        [Tooltip("드래그 회전 감도: 화면 가로 폭만큼 드래그했을 때 도는 각도(도). 0이면 비활성")]
+        public float dragTurnDegrees = 360f;
 
         RenderTexture rt;
         Camera cam;
@@ -38,6 +40,8 @@ namespace JSHWWedding.Customization
         CharacterAssembler assembler;
         CharacterLook look;
         int gender = 1;
+        bool dragging;
+        float lastPointerX;
 
         void Start()
         {
@@ -102,6 +106,36 @@ namespace JSHWWedding.Customization
         void Update()
         {
             if (turnSpeed != 0f && charRoot != null) charRoot.Rotate(0f, turnSpeed * Time.deltaTime, 0f);
+            UpdateDragRotate();
+        }
+
+        // 꾸미기(step2)에서 화면을 좌우로 드래그하면 캐릭터가 회전한다(턴테이블 방식).
+        // step1/로딩 중엔 HTML 커튼(pointer-events:auto)이 캔버스 입력을 막아 자연히 동작하지 않고,
+        // step2 하단 시트 위의 드래그도 시트(.custom-sheet)가 이벤트를 가져가 캔버스에 닿지 않는다.
+        void UpdateDragRotate()
+        {
+            if (dragTurnDegrees == 0f || charRoot == null) return;
+
+            bool held; float x;
+            if (Input.touchCount > 0)
+            {
+                Touch t = Input.GetTouch(0);
+                held = t.phase != TouchPhase.Ended && t.phase != TouchPhase.Canceled;
+                x = t.position.x;
+            }
+            else
+            {
+                held = Input.GetMouseButton(0);
+                x = Input.mousePosition.x;
+            }
+
+            if (!held) { dragging = false; return; }
+            if (!dragging) { dragging = true; lastPointerX = x; return; }
+
+            float deltaX = x - lastPointerX;
+            lastPointerX = x;
+            // 카메라 쪽(앞면)이 손가락을 따라오는 방향: 오른쪽 드래그 → -Y 회전
+            charRoot.Rotate(0f, -deltaX * dragTurnDegrees / Mathf.Max(1f, Screen.width), 0f);
         }
 
         // ===== 웹 → 유니티 (WebLobbyBridge 가 호출) =====
@@ -110,6 +144,7 @@ namespace JSHWWedding.Customization
             gender = g;
             if (manifest == null) return;
             look = manifest.DefaultFor(g);
+            ResetYaw();
             assembler.ApplyFull(look);
             ApplyPreviewLayer();
         }
@@ -127,8 +162,17 @@ namespace JSHWWedding.Customization
             if (l == null) return;
             look = l.Clone();
             gender = l.gender;
+            ResetYaw();
             assembler.ApplyFull(look);
             ApplyPreviewLayer();
+        }
+
+        // 전신 룩을 새로 적용할 때(꾸미기 진입/성별 변경)는 정면으로 되돌린다.
+        // 부위 하나 스왑(SetCategory)은 보던 각도를 유지.
+        void ResetYaw()
+        {
+            dragging = false;
+            if (charRoot != null) charRoot.rotation = Quaternion.Euler(0f, charYaw, 0f);
         }
 
         public CharacterLook CurrentLook =>

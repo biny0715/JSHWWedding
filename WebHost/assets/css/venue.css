@@ -159,6 +159,7 @@ html, body {
   margin: 0; text-align: center;
   font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1rem; color: var(--coral);
 }
+.custom-hint { margin: -6px 0 0; text-align: center; font-size: .78rem; color: #7d756b; }
 /* 카테고리 탭 (가로 스크롤) */
 .custom-tabs { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
 .custom-tabs::-webkit-scrollbar { display: none; }
