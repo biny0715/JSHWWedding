@@ -192,6 +192,36 @@
   });
 
   /* =====================================================================
+   * iOS Safari 글리치 워치독 — 커스텀 시트(.custom-sheet)가 간혹 사라지는 문제
+   *  position:fixed 요소는 뷰포트 변화(주소창/툴바 토글, 회전)나 앱/탭 복귀 때
+   *  iOS 컴포지터가 레이어를 떨궈 "안 그려지는" 경우가 있다(CSS translateZ 고정만으론 재발).
+   *  → 해당 이벤트마다 시트를 display 토글로 강제 재페인트해서 즉시 복구한다.
+   * ===================================================================== */
+  var czSheet = step2 ? step2.querySelector(".custom-sheet") : null;
+  var repinQueued = false;
+  function repinSheet() {
+    if (!czSheet || !step2 || step2.classList.contains("lobby--hidden") || repinQueued) return;
+    repinQueued = true;
+    requestAnimationFrame(function () {
+      repinQueued = false;
+      czSheet.style.animation = "none";      // 복구 시 등장 애니메이션 재생 방지
+      czSheet.style.display = "none";
+      void czSheet.offsetHeight;             // reflow 강제 → 레이어 재부착
+      czSheet.style.display = "";
+    });
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", repinSheet);
+    window.visualViewport.addEventListener("scroll", repinSheet);
+  }
+  window.addEventListener("resize", repinSheet);
+  window.addEventListener("orientationchange", function () { setTimeout(repinSheet, 300); });
+  window.addEventListener("pageshow", repinSheet);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) setTimeout(repinSheet, 100);   // 앱/탭 복귀 직후 복구
+  });
+
+  /* =====================================================================
    * 캐릭터 커스텀 (step2)
    *  - 룩 상태는 웹이 소유: cz.look = [gender, p1..p11] (-1=없음)
    *  - Unity OnPreviewReady 로 카테고리 개수 + 성별 기본값을 받아 버튼/기본룩 구성
