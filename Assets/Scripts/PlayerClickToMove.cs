@@ -16,14 +16,30 @@ namespace Photon.Pun.Demo.PunBasics
         [Tooltip("이 거리(m) 안을 누르면 무시(캐릭터 바로 위를 눌렀을 때 떨림 방지)")]
         [SerializeField] private float holdDeadzone = 0.4f;
 
+        [Header("달리기 가속 (계속 달리면 점점 빨라짐)")]
+        [Tooltip("이 시간(초) 이상 계속 이동하면 가속 시작")]
+        [SerializeField] private float boostDelay = 3f;
+        [Tooltip("최대 가속 배수 (NavMeshAgent 기본 속도 대비)")]
+        [SerializeField] private float boostMaxMultiplier = 1.5f;
+        [Tooltip("가속 시작 후 최대 배수까지 도달하는 시간(초) — '점점 빨라지는' 구간")]
+        [SerializeField] private float boostRampTime = 2f;
+        [Tooltip("이 속도(m/s) 이상 움직여야 '이동 중'으로 판정")]
+        [SerializeField] private float boostMoveThreshold = 0.5f;
+        [Tooltip("이동이 이 시간(초) 이상 끊겨야 가속 리셋 (코너 감속 같은 짧은 끊김 무시)")]
+        [SerializeField] private float boostStopGrace = 0.3f;
+
         private enum PointerState { None, Held, Released }
 
         private NavMeshAgent agent;
         private Camera cam;
+        private float baseSpeed;     // NavMeshAgent 기본 속도(프리팹 값)
+        private float movingTime;    // 연속 이동 시간(초)
+        private float stoppedTime;   // 임계 미만 속도 지속 시간(초)
 
         void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            baseSpeed = agent.speed;
         }
 
         void Start()
@@ -59,6 +75,7 @@ namespace Photon.Pun.Demo.PunBasics
             if (UIInputLock.Locked)
             {
                 if (agent.enabled && agent.hasPath) agent.ResetPath();
+                ResetRunBoost();
                 return;
             }
 
@@ -91,6 +108,36 @@ namespace Photon.Pun.Demo.PunBasics
             {
                 if (agent.enabled && agent.hasPath) agent.ResetPath();   // 손을 떼면 즉시 멈춤
             }
+
+            UpdateRunBoost();
+        }
+
+        // boostDelay 초 이상 계속 이동하면 boostRampTime 에 걸쳐 기본 속도의 boostMaxMultiplier 배까지
+        // 부드럽게 가속한다. 멈추면(짧은 끊김은 boostStopGrace 로 무시) 기본 속도로 복귀.
+        // 애니메이션 배속은 PlayerAnimatorManager 가 실제 속도(velocity)에 비례해 함께 올린다.
+        private void UpdateRunBoost()
+        {
+            bool moving = agent.enabled && agent.velocity.magnitude > boostMoveThreshold;
+            if (moving)
+            {
+                movingTime += Time.deltaTime;
+                stoppedTime = 0f;
+            }
+            else
+            {
+                stoppedTime += Time.deltaTime;
+                if (stoppedTime >= boostStopGrace) { ResetRunBoost(); return; }
+            }
+
+            float t = Mathf.Clamp01((movingTime - boostDelay) / Mathf.Max(0.01f, boostRampTime));
+            agent.speed = baseSpeed * Mathf.SmoothStep(1f, boostMaxMultiplier, t);
+        }
+
+        private void ResetRunBoost()
+        {
+            movingTime = 0f;
+            stoppedTime = 0f;
+            agent.speed = baseSpeed;
         }
 
         // 현재 포인터(터치/마우스) 상태와 화면 좌표를 반환.

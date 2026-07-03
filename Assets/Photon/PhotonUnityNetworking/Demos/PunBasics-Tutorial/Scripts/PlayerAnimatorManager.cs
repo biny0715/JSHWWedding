@@ -11,10 +11,12 @@ namespace Photon.Pun.Demo.PunBasics
         private NavMeshAgent agent;
 
         private float syncedSpeed;
+        private float baseSpeed = 3.5f;   // NavMeshAgent 기본 속도 — 달리기 가속 시 애니 배속 기준
 
         void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            if (agent != null && agent.speed > 0.01f) baseSpeed = agent.speed;
             animators.AddRange(GetComponentsInChildren<Animator>());
         }
 
@@ -39,9 +41,17 @@ namespace Photon.Pun.Demo.PunBasics
                 speed = syncedSpeed;
             }
 
+            // 달리기 가속(기본 속도 초과) 비율만큼 재생을 배속해 발이 미끄러지지 않게 한다.
+            // 원격 플레이어도 syncedSpeed(velocity)로 같은 값을 계산하므로 별도 동기화 불필요.
+            float animSpeed = Mathf.Max(1f, speed / baseSpeed);
+
             foreach (Animator anim in animators)
             {
-                if (anim != null) anim.SetFloat("Speed", speed);   // 파괴된 부위(null) 건너뜀 → 루프 중단 방지
+                if (anim != null)   // 파괴된 부위(null) 건너뜀 → 루프 중단 방지
+                {
+                    anim.SetFloat("Speed", speed);
+                    anim.speed = animSpeed;
+                }
             }
         }
 
