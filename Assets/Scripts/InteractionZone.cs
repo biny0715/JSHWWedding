@@ -22,6 +22,8 @@ namespace JSHWWedding
         public string buttonLabel = "방명록";
         [Tooltip("Talk 액션일 때 말 거는 NPC(대화창 화자) 이름")]
         public string talkName = "비니";
+        [Tooltip("Talk 대화 종류: \"npc\"(비니 퀘스트) / \"help\"(지니 도움말)")]
+        public string talkMode = "npc";
 
         [Header("표시")]
         [Tooltip("플레이어가 이 거리 안에 들어오면 버튼 표시")]
@@ -97,7 +99,7 @@ namespace JSHWWedding
             string nick = string.IsNullOrEmpty(PhotonNetwork.NickName) ? "하객" : PhotonNetwork.NickName;
             if (action == ZoneAction.Guestbook) VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
             else if (action == ZoneAction.Album) VenueWeb.OpenAlbum();
-            else { NpcDialogCamera.Focus(transform); VenueWeb.OpenNpcDialog(talkName, "npc"); }   // Talk: NPC 정면 즉시컷 + 대화창
+            else { NpcDialogCamera.Focus(transform); VenueWeb.OpenNpcDialog(talkName, talkMode); }   // Talk: NPC 정면 즉시컷 + 대화창
         }
 
         void BuildUI()
@@ -151,30 +153,38 @@ namespace JSHWWedding
             Gizmos.DrawWireSphere(new Vector3(c.x, c.y, c.z), activateRadius);
         }
 
-        // ===== '비니' 등 NPC에 '말걸기' 존을 런타임 자동 부착 (씬 수동 배치 불필요) =====
+        // ===== NPC에 상호작용 존을 런타임 자동 부착 (씬 수동 배치 불필요) =====
+        //  - 비니: "말걸기"(npc 퀘스트) / 지니: "도움말"(help 안내)
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void BootstrapNpcTalk()
         {
-            SceneManager.sceneLoaded += (scene, mode) => { if (scene.name == "Wedding") AttachTalkTo("비니"); };
-            if (SceneManager.GetActiveScene().name == "Wedding") AttachTalkTo("비니");
+            SceneManager.sceneLoaded += (scene, mode) => { if (scene.name == "Wedding") AttachAllNpcs(); };
+            if (SceneManager.GetActiveScene().name == "Wedding") AttachAllNpcs();
         }
 
-        static void AttachTalkTo(string npcName)
+        static void AttachAllNpcs()
+        {
+            AttachTalkTo("비니", "말걸기", "npc");
+            AttachTalkTo("지니", "도움말", "help");
+        }
+
+        static void AttachTalkTo(string npcName, string label, string mode)
         {
             // 이미 부착돼 있으면 스킵
             foreach (var z in FindObjectsByType<InteractionZone>(FindObjectsSortMode.None))
                 if (z.action == ZoneAction.Talk && z.talkName == npcName) return;
 
-            // PlayerNameTag.overrideName 으로 NPC(GM_Char) 찾기
+            // PlayerNameTag.overrideName 으로 NPC(GM_Char / Jiny_Char) 찾기
             Transform target = null;
             foreach (var tag in FindObjectsByType<PlayerNameTag>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (tag != null && tag.overrideName == npcName) { target = tag.transform; break; }
-            if (target == null) { Debug.LogWarning($"[InteractionZone] NPC '{npcName}' 못 찾음 → '말걸기' 버튼 생략"); return; }
+            if (target == null) { Debug.LogWarning($"[InteractionZone] NPC '{npcName}' 못 찾음 → '{label}' 버튼 생략"); return; }
 
             var zone = target.gameObject.AddComponent<InteractionZone>();
             zone.action = ZoneAction.Talk;
-            zone.buttonLabel = "말걸기";
+            zone.buttonLabel = label;
             zone.talkName = npcName;
+            zone.talkMode = mode;
             zone.activateRadius = 4f;
             zone.buttonHeight = 4f;   // NPC 머리 위. 필요시 조절
         }

@@ -462,7 +462,14 @@
         var wreathRemain = wreathList ? Math.max(0, 15 - wreathList.length) : null;
 
         var lines, onEnd = "close";
-        if (mode === "celebrate") {
+        if (mode === "help") {
+          // 지니(도움말 NPC): 퀘스트 없이 안내 대사만 읽고 닫힘. 화자 이름은 name("지니"), 아바타는 지니 이모지.
+          var jiny = (window.WEDDING && window.WEDDING.jiny) || {};
+          npcAvatarEl.textContent = jiny.emoji || "🎀";
+          lines = (jiny.lines && jiny.lines.length) ? jiny.lines : ["안녕! 나는 신부의 동생 지니라고 해~"];
+          onEnd = "close";
+        }
+        else if (mode === "celebrate") {
           lines = npcCfg.celebrate; onEnd = "guestbook";
           // 축하하기(신부 앞) 대화의 화자는 '신부' — 말 건 사람 이름이 아니라 신부 이름으로 표시.
           // (유니티는 이 모드에서 플레이어 닉을 넘기지만, 방명록 작성자는 아래 guestbook 분기에서 savedName() 으로 따로 채움)
