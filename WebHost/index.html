@@ -98,8 +98,10 @@
            여긴 하단 컨트롤 시트만. 버튼은 counts 받아 JS가 구성. -->
       <section class="lobby lobby--step2 lobby--hidden" id="lobby-step2">
         <div class="custom-sheet">
-          <p class="custom-title">캐릭터 꾸미기</p>
-          <p class="custom-hint">캐릭터를 좌우로 쓸어 돌려볼 수 있어요</p>
+          <div class="custom-head">
+            <p class="custom-title">캐릭터 꾸미기</p>
+            <p class="custom-hint">좌우로 쓸어 캐릭터를 돌려보세요</p>
+          </div>
           <div class="custom-tabs" id="custom-tabs"></div>
           <div class="custom-row">
             <button class="cs-arrow" id="cs-prev" type="button" aria-label="이전">‹</button>
@@ -460,7 +462,12 @@
         var wreathRemain = wreathList ? Math.max(0, 15 - wreathList.length) : null;
 
         var lines, onEnd = "close";
-        if (mode === "celebrate") { lines = npcCfg.celebrate; onEnd = "guestbook"; }
+        if (mode === "celebrate") {
+          lines = npcCfg.celebrate; onEnd = "guestbook";
+          // 축하하기(신부 앞) 대화의 화자는 '신부' — 말 건 사람 이름이 아니라 신부 이름으로 표시.
+          // (유니티는 이 모드에서 플레이어 닉을 넘기지만, 방명록 작성자는 아래 guestbook 분기에서 savedName() 으로 따로 채움)
+          npcNameEl.textContent = (window.WEDDING && window.WEDDING.bride && window.WEDDING.bride.short) || "신부";
+        }
         else if (questDoneFlag()) lines = npcCfg.questDone;                               // 이미 완료한 기기 → 재도전 불가
         else if (!st.accepted) {                                                          // 제안 → 수락/거절
           lines = (npcCfg.questIntro || []).slice();
@@ -519,7 +526,7 @@
         }
         if (npcIndex < npcLines.length - 1) { npcIndex++; showNpcLine(npcIndex); }
         else if (npcOnEnd === "choice") { npcNextEl.classList.add("hide"); npcChoicesEl.hidden = false; }
-        else if (npcOnEnd === "guestbook") { closeNpcSilent(); window.OnOpenGuestbook(npcNameEl.textContent); }
+        else if (npcOnEnd === "guestbook") { closeNpcSilent(); window.OnOpenGuestbook(savedName()); }   // 방명록 작성자 = 방문자 이름(화자 이름과 분리)
         else if (npcOnEnd === "wreath") { openWreathForm(); }
         else closeNpc();
       }

@@ -13,7 +13,7 @@ namespace JSHWWedding.Customization.EditorTools
     public static class BrideNpcSetup
     {
         const string JisuPath = "Assets/Photon/PhotonUnityNetworking/Demos/PunBasics-Tutorial/Resources/Jisu.prefab";
-        const string BrideName = "박지수";   // 머리 위 이름표
+        const string BrideName = "신부\n박지수";   // 머리 위 이름표(2줄: 역할 + 이름)
 
         // 제거 순서: RequireComponent 의존(PhotonView 를 요구하는 것들)을 먼저, PhotonView 는 마지막.
         static readonly string[] StripOrder = {
