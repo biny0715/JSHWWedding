@@ -26,7 +26,7 @@ namespace JSHWWedding.Customization
         // 기기 화면 비와 무관하게 세로 매핑은 보존되므로 % 프레이밍은 견고. 인스펙터에서 미세조정 가능.
         public float camDistance = 7.4f;
         public float camHeight = 0.5f;
-        public float lookHeight = -0.08f;
+        public float lookHeight = -0.18f;   // 캐릭터를 프레임에서 살짝 위로(신발이 하단 시트에 가리지 않게)
         public float fov = 30f;
         [Tooltip("캐릭터가 카메라를 바라보게 하는 yaw. 등이 보이면 0↔180 바꿔")]
         public float charYaw = 0f;

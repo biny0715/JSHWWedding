@@ -5647,10 +5647,11 @@ MonoBehaviour:
   rtHeight: 1280
   camDistance: 7.4
   camHeight: 0.5
-  lookHeight: -0.08
+  lookHeight: -0.18
   fov: 30
   charYaw: 0
   turnSpeed: 0
+  dragTurnDegrees: 360
 --- !u!4 &1254769654
 Transform:
   m_ObjectHideFlags: 0
