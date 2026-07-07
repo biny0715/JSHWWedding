@@ -482,3 +482,26 @@ html, body {
 .wreath-view { text-align: center; padding: 8px 4px 6px; }
 .wreath-author { margin: 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1.02rem; color: var(--sea-dk); }
 .wreath-msg { margin: 12px 0 2px; font-size: 1rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* 마음 전하기(계좌) 팝업 본문 — 형원 NPC 대화 끝에 열림 */
+.gift-body { display: flex; flex-direction: column; gap: 14px; }
+.gift-intro { margin: 0; text-align: center; font-size: .88rem; line-height: 1.6; color: #6b635a; }
+.gift-group { display: flex; flex-direction: column; gap: 8px; }
+.gift-side {
+  margin: 0 0 2px; font-family: "GmarketSans", sans-serif; font-weight: 700;
+  font-size: .95rem; color: var(--sea-dk);
+}
+.gift-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: #faf6ee; border: 1px solid #eadfd0; border-radius: 12px; padding: 10px 12px;
+}
+.gift-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gift-label { font-size: .82rem; font-weight: 700; color: var(--coral); }
+.gift-acc { font-size: .92rem; color: var(--ink); overflow-wrap: anywhere; }
+.gift-holder { font-size: .78rem; color: #8a8378; }
+.gift-copy {
+  flex: none; border: 0; border-radius: 10px; padding: 9px 13px;
+  background: var(--coral); color: #fff; font-weight: 700; font-size: .84rem;
+  font-family: inherit; cursor: pointer;
+}
+.gift-copy:disabled { background: #a8cfa4; }

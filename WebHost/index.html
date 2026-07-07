@@ -239,6 +239,17 @@
         </div>
       </div>
 
+      <!-- 마음 전하기 창 (형원 NPC 대화 끝 → 계좌 안내, config.js 의 accounts 사용) -->
+      <div class="venue-modal" id="gift-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="gift-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">마음 전하기</h2>
+          <div class="gift-body" id="gift-body">
+            <p class="gift-intro">참석하지 못하시더라도 축하의 마음을 전하실 수 있도록<br>계좌번호를 안내드립니다.</p>
+          </div>
+        </div>
+      </div>
+
       <!-- 미니맵은 유니티 패널(MinimapSystem)이 렌더 — 메뉴의 "미니맵"이 SendMessage 로 연다 -->
     </div>
 
@@ -328,7 +339,8 @@
       var helpModal = document.getElementById("help-modal");
       var npcDialog = document.getElementById("npc-dialog");
       var wreathModal = document.getElementById("wreath-modal");
-      var gbWidget = null, albumDone = false;
+      var giftModal = document.getElementById("gift-modal");
+      var gbWidget = null, albumDone = false, giftDone = false;
 
       // 유니티에 신호 보내기 (arg 는 선택 — SetWreathCount 처럼 값이 필요한 메서드용)
       function sendUnity(method, arg) {
@@ -340,7 +352,7 @@
       }
       function lockMove() { sendUnity("OnVenueOverlayOpened"); }      // 창 열림 → 이동 잠금
       function anyModalOpen() {
-        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden;
+        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden || !giftModal.hidden;
       }
 
       // 디바이스 식별자(localStorage) — 퀘스트 1회 제한·화환 기록용. 브라우저 데이터 삭제 시 재발급됨.
@@ -415,6 +427,61 @@
         albumDone = true;
       }
 
+      // ===== 마음 전하기(계좌) — 형원 NPC 대화 끝에 열림 =====
+      function openGift() {
+        renderGift();
+        giftModal.hidden = false;
+        lockMove();   // 창이 실제로 열렸을 때만 이동 잠금(다른 창과 동일 규약)
+      }
+
+      function renderGift() {
+        if (giftDone) return;
+        var acc = (window.WEDDING && window.WEDDING.accounts) || {};
+        var box = document.getElementById("gift-body");
+        function group(title, list) {
+          if (!list || !list.length) return "";
+          return '<div class="gift-group"><h3 class="gift-side">' + title + "</h3>" +
+            list.map(function (a) {
+              var accText = (a.bank || "") + " " + (a.number || "");
+              return '<div class="gift-row">' +
+                '<div class="gift-info">' +
+                '<span class="gift-label">' + (a.label || "") + "</span>" +
+                '<span class="gift-acc">' + accText + "</span>" +
+                (a.holder ? '<span class="gift-holder">예금주 ' + a.holder + "</span>" : "") +
+                "</div>" +
+                '<button type="button" class="gift-copy" data-copy="' + accText.trim() + '">복사</button>' +
+                "</div>";
+            }).join("") + "</div>";
+        }
+        box.insertAdjacentHTML("beforeend", group("신랑 측", acc.groom) + group("신부 측", acc.bride));
+        giftDone = true;
+      }
+
+      // 계좌 복사 (버튼에 잠시 "복사됨!" 표시)
+      document.getElementById("gift-body").addEventListener("click", function (e) {
+        var btn = e.target.closest(".gift-copy");
+        if (!btn) return;
+        var text = btn.getAttribute("data-copy") || "";
+        function done() {
+          var old = btn.textContent;
+          btn.textContent = "복사됨!";
+          btn.disabled = true;
+          setTimeout(function () { btn.textContent = old; btn.disabled = false; }, 1200);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+        } else { fallbackCopy(text); done(); }
+      });
+      function fallbackCopy(text) {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        } catch (e) {}
+      }
+
       // ===== NPC(비니) 대화창 — 동물의 숲 스타일 + 퀘스트 분기 =====
       // mode: "npc"(비니 퀘스트) / "celebrate"(감사 대화 → 방명록)
       // stateJson: 유니티 QuestManager 상태 {"accepted":bool,"found":n,"total":n}
@@ -448,7 +515,7 @@
 
       // 유니티 → 웹: 대화창 열기 (jslib OpenWeddingNpcDialog)
       window.OnOpenNpcDialog = function (name, mode, stateJson) {
-        gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true;
+        gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true; giftModal.hidden = true;
         npcCfg = (window.WEDDING && window.WEDDING.npc) || NPC_DEFAULT;
         var st = { accepted: false, found: 0, total: 0 };
         try {
@@ -468,6 +535,13 @@
           npcAvatarEl.textContent = jiny.emoji || "🎀";
           lines = (jiny.lines && jiny.lines.length) ? jiny.lines : ["안녕! 나는 신부의 동생 지니라고 해~"];
           onEnd = "close";
+        }
+        else if (mode === "groom") {
+          // 형원(신랑 NPC): 인사 대사 후 '마음 전하기'(계좌) 창이 열림.
+          var hw = (window.WEDDING && window.WEDDING.hw) || {};
+          npcAvatarEl.textContent = hw.emoji || "🤵";
+          lines = (hw.lines && hw.lines.length) ? hw.lines : ["안녕하세요, 신랑 김형원이라고 합니다."];
+          onEnd = "gift";
         }
         else if (mode === "celebrate") {
           lines = npcCfg.celebrate; onEnd = "guestbook";
@@ -534,6 +608,7 @@
         if (npcIndex < npcLines.length - 1) { npcIndex++; showNpcLine(npcIndex); }
         else if (npcOnEnd === "choice") { npcNextEl.classList.add("hide"); npcChoicesEl.hidden = false; }
         else if (npcOnEnd === "guestbook") { closeNpcSilent(); window.OnOpenGuestbook(savedName()); }   // 방명록 작성자 = 방문자 이름(화자 이름과 분리)
+        else if (npcOnEnd === "gift") { closeNpcSilent(); openGift(); }                                 // 형원: 마음 전하기(계좌) 창으로
         else if (npcOnEnd === "wreath") { openWreathForm(); }
         else closeNpc();
       }
@@ -685,6 +760,7 @@
       document.getElementById("gb-close").addEventListener("click", function () { gbModal.hidden = true; notifyIfAllClosed(); });
       document.getElementById("album-close").addEventListener("click", function () { albumModal.hidden = true; notifyIfAllClosed(); });
       document.getElementById("help-close").addEventListener("click", function () { helpModal.hidden = true; notifyIfAllClosed(); });
+      document.getElementById("gift-close").addEventListener("click", function () { giftModal.hidden = true; notifyIfAllClosed(); });
     </script>
   </body>
 </html>

@@ -22,8 +22,10 @@ namespace JSHWWedding
         public string buttonLabel = "방명록";
         [Tooltip("Talk 액션일 때 말 거는 NPC(대화창 화자) 이름")]
         public string talkName = "비니";
-        [Tooltip("Talk 대화 종류: \"npc\"(비니 퀘스트) / \"help\"(지니 도움말)")]
+        [Tooltip("Talk 대화 종류: \"npc\"(비니 퀘스트) / \"help\"(지니 도움말) / \"groom\"(형원 인사→마음전하기)")]
         public string talkMode = "npc";
+        [Tooltip("Talk 대화 카메라가 바라볼 높이(m) — NPC 키에 맞춰 조절")]
+        public float talkCamHeight = 1f;
 
         [Header("표시")]
         [Tooltip("플레이어가 이 거리 안에 들어오면 버튼 표시")]
@@ -99,7 +101,7 @@ namespace JSHWWedding
             string nick = string.IsNullOrEmpty(PhotonNetwork.NickName) ? "하객" : PhotonNetwork.NickName;
             if (action == ZoneAction.Guestbook) VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
             else if (action == ZoneAction.Album) VenueWeb.OpenAlbum();
-            else { NpcDialogCamera.Focus(transform); VenueWeb.OpenNpcDialog(talkName, talkMode); }   // Talk: NPC 정면 즉시컷 + 대화창
+            else { NpcDialogCamera.Focus(transform, talkCamHeight); VenueWeb.OpenNpcDialog(talkName, talkMode); }   // Talk: NPC 정면 즉시컷 + 대화창
         }
 
         void BuildUI()
@@ -164,11 +166,12 @@ namespace JSHWWedding
 
         static void AttachAllNpcs()
         {
-            AttachTalkTo("비니", "말걸기", "npc", 4f);
-            AttachTalkTo("지니", "도움말", "help", 3f);   
+            AttachTalkTo("비니", "말걸기", "npc", 4f, 1f);
+            AttachTalkTo("지니", "도움말", "help", 3f, 0.45f);
+            AttachTalkTo("형원", "말걸기", "groom", 3f, 0.45f);   // 신랑 — 지니와 동일한 버튼/카메라 구도
         }
 
-        static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight)
+        static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight, float camHeight)
         {
             // 이미 부착돼 있으면 스킵
             foreach (var z in FindObjectsByType<InteractionZone>(FindObjectsSortMode.None))
@@ -186,7 +189,8 @@ namespace JSHWWedding
             zone.talkName = npcName;
             zone.talkMode = mode;
             zone.activateRadius = 4f;
-            zone.buttonHeight = buttonHeight;   // NPC별 지정(AttachAllNpcs 에서 전달)
+            zone.buttonHeight = buttonHeight;    // NPC별 지정(AttachAllNpcs 에서 전달)
+            zone.talkCamHeight = camHeight;      // NPC별 대화 카메라 높이
         }
     }
 }
