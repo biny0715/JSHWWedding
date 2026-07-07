@@ -215,6 +215,7 @@
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     window.scrollTo(0, 0);
     hide(step1); show(step2);
+    resetLift();                                             // 이전에 끌어올린 시트 위치 초기화
     if (curtain) curtain.classList.add("curtain--hidden");   // Unity 프리뷰 노출
     initLookForGender();                                     // 프리뷰 성별 룩 보장
   });
@@ -266,6 +267,35 @@
   });
   // 순수 탭 연타 중엔 위 이벤트들이 안 뜰 수 있어 시트 터치 자체로도 점검
   if (czSheet) czSheet.addEventListener("touchend", function () { setTimeout(repinSheet, 50); });
+
+  /* ---- 시트 끌어올리기(수동 복구) ----
+   * 일부 인앱 브라우저(카카오톡 등)는 하단 툴바가 시트 아래를 가려도 viewport 이벤트가
+   * 오지 않아 자동 복구가 불가능하다. → 시트 상단(제목 영역)을 위로 드래그하면
+   * 시트 전체를 끌어올릴 수 있게 한다. (아래로 드래그하면 원위치) */
+  var czHead = czSheet ? czSheet.querySelector(".custom-head") : null;
+  var sheetLift = 0, liftFromY = null, liftBase = 0;
+  function applyLift() {
+    if (czSheet) czSheet.style.transform = sheetLift > 0 ? "translateY(-" + sheetLift + "px)" : "";
+  }
+  function resetLift() { sheetLift = 0; applyLift(); }
+  if (czHead) {
+    czHead.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1) return;
+      liftFromY = e.touches[0].clientY;
+      liftBase = sheetLift;
+    }, { passive: true });
+    czHead.addEventListener("touchmove", function (e) {
+      if (liftFromY === null) return;
+      var dy = liftFromY - e.touches[0].clientY;                 // 위로 끌면 +
+      var max = Math.round(window.innerHeight * 0.45);           // 과도한 이동 제한
+      sheetLift = Math.max(0, Math.min(max, liftBase + dy));
+      applyLift();
+      if (e.cancelable) e.preventDefault();                      // 드래그가 화면 팬으로 번지지 않게
+    }, { passive: false });
+    var liftEnd = function () { liftFromY = null; };
+    czHead.addEventListener("touchend", liftEnd);
+    czHead.addEventListener("touchcancel", liftEnd);
+  }
 
   /* =====================================================================
    * 캐릭터 커스텀 (step2)

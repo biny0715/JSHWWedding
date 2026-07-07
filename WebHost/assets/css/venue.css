@@ -160,7 +160,12 @@ html, body {
   animation: sheetUp .25s ease;
 }
 @keyframes sheetUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-.custom-head { text-align: center; }
+/* 드래그 손잡이: 위로 끌면 시트가 올라감(인앱 브라우저 하단 툴바 가림 대비) */
+.custom-head { text-align: center; position: relative; padding-top: 12px; touch-action: none; }
+.custom-head::before {
+  content: ""; position: absolute; top: 2px; left: 50%; margin-left: -22px;
+  width: 44px; height: 5px; border-radius: 3px; background: #e4d9c9;
+}
 .custom-title {
   margin: 0;
   font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .98rem; color: var(--coral);
