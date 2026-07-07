@@ -121,3 +121,6 @@ MCPForUnity.*.csproj
 
 # realvirtual MCP 로컬 인증 토큰 (버전관리 제외)
 Assets/.mcp_auth_token
+
+# --- MCP editor screenshots (로컬 전용) ---
+Assets/.screenshots/
