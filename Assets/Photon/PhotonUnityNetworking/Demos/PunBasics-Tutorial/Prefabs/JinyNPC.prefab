@@ -8949,6 +8949,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2061551251138019040}
+  - component: {fileID: 163893698301526293}
   m_Layer: 0
   m_Name: JinyNPC
   m_TagString: Untagged
@@ -8972,6 +8973,19 @@ Transform:
   - {fileID: 7853054111424378010}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -85.308, z: 0}
+--- !u!114 &163893698301526293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6857944024510701659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64a478e057100ba4d85d9720f873e973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.IdleVariantDriver
+  interval: {x: 8, y: 16}
 --- !u!1 &6912333855058457855
 GameObject:
   m_ObjectHideFlags: 0

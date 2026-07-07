@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 6543286571129987677}
   - component: {fileID: 5814289370375878499}
   - component: {fileID: 1877130764075502960}
+  - component: {fileID: 5195016690772430297}
   m_Layer: 0
   m_Name: FemaleCharacter
   m_TagString: Untagged
@@ -305,6 +306,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.Customization.PlayerCustomizationApply
   gender: 1
   manifest: {fileID: 11400000, guid: 65c94ccf0fa1cc249954e233048034db, type: 2}
+--- !u!114 &5195016690772430297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7548924090412476535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64a478e057100ba4d85d9720f873e973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.IdleVariantDriver
+  interval: {x: 8, y: 16}
 --- !u!1001 &1839187575688073904
 PrefabInstance:
   m_ObjectHideFlags: 0

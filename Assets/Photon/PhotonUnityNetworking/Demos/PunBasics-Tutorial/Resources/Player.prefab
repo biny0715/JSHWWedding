@@ -2138,6 +2138,7 @@ GameObject:
   - component: {fileID: 2900542388230549683}
   - component: {fileID: 5364439669061423407}
   - component: {fileID: 6006151391776842862}
+  - component: {fileID: 3347551465467145903}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -2303,6 +2304,13 @@ MonoBehaviour:
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 8
+  holdAheadDistance: 3.5
+  holdDeadzone: 0.4
+  boostDelay: 3
+  boostMaxMultiplier: 1.5
+  boostRampTime: 2
+  boostMoveThreshold: 0.5
+  boostStopGrace: 0.3
 --- !u!114 &2900542388230549683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2315,7 +2323,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 507e5741cec8a42dc964c8e0a4b55bd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  directionDampTime: 0.25
 --- !u!54 &5364439669061423407
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2378,6 +2385,19 @@ MonoBehaviour:
     LayerIndex: 0
   - SynchronizeType: 0
     LayerIndex: 1
+--- !u!114 &3347551465467145903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8179423199929046182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64a478e057100ba4d85d9720f873e973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.IdleVariantDriver
+  interval: {x: 8, y: 16}
 --- !u!1 &8363933261896331939
 GameObject:
   m_ObjectHideFlags: 0

@@ -8138,6 +8138,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6961007226738194681}
+  - component: {fileID: 6794475649700160746}
   m_Layer: 0
   m_Name: BrideNPC
   m_TagString: Untagged
@@ -8161,6 +8162,19 @@ Transform:
   - {fileID: 8503531294535720289}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &6794475649700160746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6907204601400568417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64a478e057100ba4d85d9720f873e973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.IdleVariantDriver
+  interval: {x: 8, y: 16}
 --- !u!1 &6909120865451255336
 GameObject:
   m_ObjectHideFlags: 0
