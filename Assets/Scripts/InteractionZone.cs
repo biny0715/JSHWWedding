@@ -164,11 +164,11 @@ namespace JSHWWedding
 
         static void AttachAllNpcs()
         {
-            AttachTalkTo("비니", "말걸기", "npc");
-            AttachTalkTo("지니", "도움말", "help");
+            AttachTalkTo("비니", "말걸기", "npc", 4f);
+            AttachTalkTo("지니", "도움말", "help", 3f);   
         }
 
-        static void AttachTalkTo(string npcName, string label, string mode)
+        static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight)
         {
             // 이미 부착돼 있으면 스킵
             foreach (var z in FindObjectsByType<InteractionZone>(FindObjectsSortMode.None))
@@ -186,7 +186,7 @@ namespace JSHWWedding
             zone.talkName = npcName;
             zone.talkMode = mode;
             zone.activateRadius = 4f;
-            zone.buttonHeight = 4f;   // NPC 머리 위. 필요시 조절
+            zone.buttonHeight = buttonHeight;   // NPC별 지정(AttachAllNpcs 에서 전달)
         }
     }
 }
