@@ -3,9 +3,11 @@
 //  - 방식: CinemachineBrain 을 잠깐 끄고 메인 카메라를 NPC 정면에 직접 배치 → 블렌드 없이 즉시 전환.
 //    대화창이 닫히면(웹의 OnVenueOverlayClosed → Unfocus) 브레인을 다시 켜 게임플레이 뷰로 복귀.
 //  - 씬 배치 불필요: Wedding 씬 로드 시 자동 생성(부트스트랩). InteractionZone(Talk) 이 Focus 를 호출.
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Cinemachine;
+using Photon.Pun.Demo.PunBasics;   // PlayerClickToMove(플레이어 식별용)
 
 namespace JSHWWedding
 {
@@ -25,6 +27,8 @@ namespace JSHWWedding
         int focusFrame;
         Vector3 lockPos;
         Quaternion lockRot;
+        // 대화 중 숨긴 플레이어 렌더러(내 캐릭터+다른 하객, 로컬 화면만) — 종료 시 복원
+        readonly List<Renderer> hiddenRenderers = new List<Renderer>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
@@ -41,12 +45,12 @@ namespace JSHWWedding
         void Awake() { instance = this; Active = false; }
         void OnDestroy() { if (instance == this) instance = null; }
 
-        /// <summary>해당 NPC 정면을 바라보는 뷰로 즉시 컷 전환.</summary>
-        public static void Focus(Transform npc) { if (instance != null) instance.DoFocus(npc); }
+        /// <summary>해당 NPC 정면을 바라보는 뷰로 즉시 컷 전환. headHeight 로 NPC별 바라볼 높이(m) 지정.</summary>
+        public static void Focus(Transform npc, float headHeight = HeadHeight) { if (instance != null) instance.DoFocus(npc, headHeight); }
         /// <summary>게임플레이 카메라로 복귀(대화 중이 아니면 무시).</summary>
         public static void Unfocus() { if (instance != null) instance.DoUnfocus(); }
 
-        void DoFocus(Transform npc)
+        void DoFocus(Transform npc, float headHeight)
         {
             if (npc == null) return;
             cam = Camera.main;
@@ -54,7 +58,7 @@ namespace JSHWWedding
             brain = cam.GetComponent<CinemachineBrain>();
 
             // NPC 정면(그가 바라보는 방향 앞쪽)에서 얼굴을 바라본다.
-            Vector3 head = npc.position + Vector3.up * HeadHeight;
+            Vector3 head = npc.position + Vector3.up * headHeight;
             Vector3 fwd = npc.forward; fwd.y = 0f;
             fwd = (fwd.sqrMagnitude < 1e-4f) ? Vector3.forward : fwd.normalized;
             lockPos = head + fwd * Distance + Vector3.up * CamRaise;
@@ -62,6 +66,8 @@ namespace JSHWWedding
 
             if (brain != null) brain.enabled = false;   // 브레인 정지 → 블렌드 없이 즉시 컷
             cam.transform.SetPositionAndRotation(lockPos, lockRot);
+            if (focused) ShowPlayers();                 // 연속 Focus 방어(이전 숨김분 복원 후 다시 숨김)
+            HidePlayers();                              // 카메라를 가리는 캐릭터들 숨김
             focused = true;
             Active = true;
             focusFrame = Time.frameCount;
@@ -72,7 +78,26 @@ namespace JSHWWedding
             if (!focused) return;
             focused = false;
             Active = false;
+            ShowPlayers();
             if (brain != null) brain.enabled = true;     // 게임플레이 카메라로 복귀
+        }
+
+        // 플레이어 캐릭터(내 캐릭터 + 다른 하객)의 렌더러를 꺼서 NPC 뷰가 가려지지 않게 한다.
+        // 렌더링만 로컬로 끄는 것이라 다른 사람 화면에는 영향 없음. NPC(PlayerClickToMove 없음)는 대상 아님.
+        // 이름표(월드 TMP)도 MeshRenderer 라 함께 숨겨진다.
+        void HidePlayers()
+        {
+            hiddenRenderers.Clear();
+            foreach (var move in FindObjectsByType<PlayerClickToMove>(FindObjectsSortMode.None))
+                foreach (var r in move.GetComponentsInChildren<Renderer>())
+                    if (r != null && r.enabled) { r.enabled = false; hiddenRenderers.Add(r); }
+        }
+
+        void ShowPlayers()
+        {
+            foreach (var r in hiddenRenderers)
+                if (r != null) r.enabled = true;   // 대화 중 파괴(퇴장)된 렌더러는 건너뜀
+            hiddenRenderers.Clear();
         }
 
         void LateUpdate()
