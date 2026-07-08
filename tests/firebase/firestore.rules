@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// 축하 화환(wreaths) 보안 규칙 — 앱 제약을 코드로 명세한 "제안 보안 모델".
+//   (실제 배포 규칙은 Firebase 콘솔에서 관리. 여기서는 wreaths.js 의 제약을 규칙으로 검증)
+//   - 읽기: 공개(하객 누구나 화환을 볼 수 있음)
+//   - 생성: author/message/deviceId/createdAt 필수 + 길이 제한(이름 30, 메시지 1~50)
+//   - 수정/삭제: 불가(작성된 축하 문구 변조 방지)
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /wreaths/{id} {
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasAll(['author', 'message', 'deviceId', 'createdAt'])
+                    && request.resource.data.author is string
+                    && request.resource.data.author.size() <= 30
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() >= 1
+                    && request.resource.data.message.size() <= 50;
+
+      allow update, delete: if false;
+    }
+  }
+}
