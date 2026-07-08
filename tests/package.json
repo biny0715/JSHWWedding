@@ -1,0 +1,14 @@
+{
+  "name": "jshwwedding-qa-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "모바일 WebGL 청첩장 QA 자동화 테스트 (Playwright) — 로비 상태머신 회귀",
+  "scripts": {
+    "serve": "node static-server.js",
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
