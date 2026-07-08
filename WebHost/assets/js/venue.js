@@ -75,14 +75,24 @@
   var pendingNotice = "";         // 끊김 등 안내문(다음 입력화면에 표시)
   var lobbyFallbackTimer, slowTimer;
 
+  // 플레이 중 유니티가 띄운 퀘스트 HUD 숨김. 연결 끊김/재입장으로 로딩·로비로 돌아오면
+  // 유니티가 '숨김' 신호를 못 보내(끊김) HUD가 남는다 → 로딩/로비 진입 시 웹이 직접 정리.
+  // (재입장 후 새 Wedding 세션의 QuestManager 가 다시 상태를 보내므로 필요하면 다시 뜬다)
+  function hideQuestHud() {
+    var qh = document.getElementById("quest-hud");
+    if (qh) qh.hidden = true;
+  }
+
   /* ===== 상태 전환 ===== */
   function showLoading(text, sub) {
     if (loadingText && text) loadingText.textContent = text;
     if (loadingSub) loadingSub.textContent = sub != null ? sub : "잠시만 기다려 주세요";
     setMenuVisible(false);
+    hideQuestHud();
     show(loading); hide(step1); hide(step2);
   }
   function showLobby() {        // Unity 로비 (재)진입 → 입력(또는 자동 입장)
+    hideQuestHud();
     // 멱등화: 이미 로비 UI 상태이고(커스텀 step2 포함) 입장 중도 아니며 표시할 안내문도 없으면
     // 아무것도 리셋하지 않는다 — 중복 LobbyReady 신호가 커스텀 중인 시트를 날리지 못하게.
     if (lobbyReady && !state.entered && !pendingNotice &&
