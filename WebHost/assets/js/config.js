@@ -53,33 +53,44 @@ window.WEDDING = {
   },
 
   /* ---- 마음 전하기 (계좌) ---- */
-  // TODO: 실제 계좌번호로 교체
   accounts: {
     groom: [
       {
         label: "신랑 김형원",
-        bank: "○○은행",
-        number: "000-0000-0000-00",
+        bank: "토스뱅크",
+        number: "100002364045",
         holder: "김형원",
       },
       {
-        label: "신랑 측 혼주",
-        bank: "○○은행",
-        number: "000-0000-0000-00",
-        holder: "김○○",
+        label: "신랑 측 아버지",
+        bank: "하나은행",
+        number: "19691026272107",
+        holder: "김종성",
+      },
+      {
+        label: "신랑 측 어머니",
+        bank: "신한은행",
+        number: "110309932227",
+        holder: "오현희",
       },
     ],
     bride: [
       {
         label: "신부 박지수",
-        bank: "○○은행",
-        number: "000-0000-0000-00",
+        bank: "농협",
+        number: "62402037835",
         holder: "박지수",
       },
       {
-        label: "신부 측 혼주",
-        bank: "○○은행",
-        number: "000-0000-0000-00",
+        label: "신부 측 아버지",
+        bank: "하나은행",
+        number: "11491005389307",
+        holder: "박세용",
+      },
+      {
+        label: "신부 측 어머니",
+        bank: "국민은행",
+        number: "557210453914",
         holder: "김경미",
       },
     ],
