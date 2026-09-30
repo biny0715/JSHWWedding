@@ -99,7 +99,13 @@ namespace JSHWWedding
             // 여기서 낙관적으로 잠그면, 에디터/모바일 로컬테스트처럼 창이 안 뜨는 경우 잠금이 안 풀려 못 움직이게 됨.
             SetShown(false);
             string nick = string.IsNullOrEmpty(PhotonNetwork.NickName) ? "하객" : PhotonNetwork.NickName;
-            if (action == ZoneAction.Guestbook) VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
+            if (action == ZoneAction.Guestbook)
+            {
+                // "축하하기"(FlowerDecoZone) — 신부 앞 축하 대화이므로 말걸기와 동일하게 신부 정면 즉시컷.
+                var bride = FindNpcByName("신부\n박지수");
+                if (bride != null) NpcDialogCamera.Focus(bride, 0.45f);
+                VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
+            }
             else if (action == ZoneAction.Album) VenueWeb.OpenAlbum();
             else { NpcDialogCamera.Focus(transform, talkCamHeight); VenueWeb.OpenNpcDialog(talkName, talkMode); }   // Talk: NPC 정면 즉시컷 + 대화창
         }
@@ -169,7 +175,16 @@ namespace JSHWWedding
             AttachTalkTo("비니", "말걸기", "npc", 4f, 1f);
             AttachTalkTo("지니", "도움말", "help", 3f, 0.45f);
             AttachTalkTo("형원", "말걸기", "groom", 3f, 0.45f);   // 신랑 — 지니와 동일한 버튼/카메라 구도
-            AttachTalkTo("신부\n박지수", "말걸기", "celebrate", 3f, 0.45f);   // 신부 — 기존 celebrate 대사(감사→방명록) 재사용, 동일 구도
+            // 신부는 별도 "말걸기" 버튼을 만들지 않음 — 기존 "축하하기"(FlowerDecoZone, Guestbook)
+            // 버튼을 누르면 OnClicked()에서 신부를 찾아 동일한 카메라 연출을 적용한다.
+        }
+
+        // PlayerNameTag.overrideName 으로 NPC(GM_Char / Jiny_Char 등) Transform 찾기
+        static Transform FindNpcByName(string npcName)
+        {
+            foreach (var tag in FindObjectsByType<PlayerNameTag>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (tag != null && tag.overrideName == npcName) return tag.transform;
+            return null;
         }
 
         static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight, float camHeight)
@@ -178,10 +193,7 @@ namespace JSHWWedding
             foreach (var z in FindObjectsByType<InteractionZone>(FindObjectsSortMode.None))
                 if (z.action == ZoneAction.Talk && z.talkName == npcName) return;
 
-            // PlayerNameTag.overrideName 으로 NPC(GM_Char / Jiny_Char) 찾기
-            Transform target = null;
-            foreach (var tag in FindObjectsByType<PlayerNameTag>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (tag != null && tag.overrideName == npcName) { target = tag.transform; break; }
+            Transform target = FindNpcByName(npcName);
             if (target == null) { Debug.LogWarning($"[InteractionZone] NPC '{npcName}' 못 찾음 → '{label}' 버튼 생략"); return; }
 
             var zone = target.gameObject.AddComponent<InteractionZone>();
