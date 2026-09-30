@@ -169,6 +169,7 @@ namespace JSHWWedding
             AttachTalkTo("비니", "말걸기", "npc", 4f, 1f);
             AttachTalkTo("지니", "도움말", "help", 3f, 0.45f);
             AttachTalkTo("형원", "말걸기", "groom", 3f, 0.45f);   // 신랑 — 지니와 동일한 버튼/카메라 구도
+            AttachTalkTo("신부\n박지수", "말걸기", "celebrate", 3f, 0.45f);   // 신부 — 기존 celebrate 대사(감사→방명록) 재사용, 동일 구도
         }
 
         static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight, float camHeight)

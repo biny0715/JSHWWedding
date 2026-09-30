@@ -351,6 +351,10 @@ html, body {
 }
 .venue-menu-item:hover, .venue-menu-item:active { background: rgba(143,197,214,.18); }
 .venue-menu-ic { font-size: 1.1rem; line-height: 1; }
+.venue-menu-state {
+  margin-left: auto; font-size: .78rem; font-weight: 700; color: var(--sea-dk);
+  background: rgba(143,197,214,.18); border-radius: 8px; padding: 3px 8px;
+}
 
 /* =========================================================
    도움말 (조작 방법) 본문
@@ -510,3 +514,33 @@ html, body {
   font-family: inherit; cursor: pointer;
 }
 .gift-copy:disabled { background: #a8cfa4; }
+
+/* 참석 여부 확인 폼 — 마음 전하기를 닫으면 이어서 열리거나 메뉴에서 직접 열림 */
+.rsvp-form { display: grid; gap: 16px; text-align: left; margin-top: 14px; }
+.rsvp-field { display: grid; gap: 8px; }
+.rsvp-label { font-size: .86rem; font-weight: 600; color: var(--ink); }
+.rsvp-label em { color: var(--coral); font-style: normal; }
+.rsvp-field input[type="text"] {
+  font-family: inherit; font-size: .95rem; padding: 12px 14px;
+  border: 1px solid #e8dfce; border-radius: 10px; background: var(--paper); color: var(--ink);
+}
+.rsvp-field input:focus { outline: 2px solid var(--sea); border-color: transparent; }
+.rsvp-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rsvp-opt {
+  font-family: inherit; font-size: .92rem; font-weight: 600; padding: 12px 0; cursor: pointer;
+  border: 1px solid #e8dfce; border-radius: 10px; background: #fff; color: #6b635a;
+  transition: all .15s;
+}
+.rsvp-opt.active { background: var(--sea); border-color: var(--sea); color: #fff; }
+.rsvp-counter { display: flex; align-items: center; justify-content: center; gap: 22px; }
+.rsvp-count-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e8dfce; background: #fff;
+  color: var(--sea-dk); font-size: 1.2rem; line-height: 1; cursor: pointer;
+}
+.rsvp-count { font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1.05rem; min-width: 48px; text-align: center; }
+.rsvp-submit {
+  font-family: "GmarketSans", sans-serif; font-weight: 500; font-size: .98rem;
+  padding: 15px; border: none; border-radius: 10px;
+  background: var(--coral); color: #fff; cursor: pointer; margin-top: 4px;
+}
+.rsvp-submit:disabled { background: #a8cfa4; }

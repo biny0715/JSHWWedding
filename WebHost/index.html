@@ -52,6 +52,12 @@
       <nav class="venue-menu" id="venue-menu" aria-label="예식장 메뉴" hidden>
         <button type="button" class="venue-menu-item" data-menu="help"><span class="venue-menu-ic">📖</span>도움말</button>
         <button type="button" class="venue-menu-item" data-menu="guestbook"><span class="venue-menu-ic">✍️</span>방명록</button>
+        <button type="button" class="venue-menu-item" data-menu="gift"><span class="venue-menu-ic">💌</span>마음 전하기</button>
+        <button type="button" class="venue-menu-item" data-menu="rsvp"><span class="venue-menu-ic">📋</span>참석 여부</button>
+        <button type="button" class="venue-menu-item" data-menu="guide" id="venue-guide-toggle">
+          <span class="venue-menu-ic">🧭</span>네비게이션
+          <span class="venue-menu-state" id="venue-guide-state">ON</span>
+        </button>
         <a class="venue-menu-item" href="https://biny0715.github.io/JSHWWedding_WebGL/"><span class="venue-menu-ic">←</span>청첩장으로</a>
       </nav>
 
@@ -250,6 +256,37 @@
         </div>
       </div>
 
+      <!-- 참석 여부 확인 창 (마음 전하기를 닫으면 이어서 열림 · 메뉴에서도 바로 열 수 있음) -->
+      <div class="venue-modal" id="rsvp-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="rsvp-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">참석 여부 확인</h2>
+          <p class="gift-intro">소중한 분들과 함께하고 싶습니다.<br>참석 여부를 알려주시면 감사하겠습니다.</p>
+          <form class="rsvp-form" id="rsvp-form">
+            <label class="rsvp-field">
+              <span class="rsvp-label">참석자 이름 <em>*</em></span>
+              <input type="text" id="rsvp-name" placeholder="이름을 입력해주세요" required>
+            </label>
+            <div class="rsvp-field">
+              <span class="rsvp-label">어느 분 측으로 오시나요? <em>*</em></span>
+              <div class="rsvp-toggle" data-toggle="side">
+                <button type="button" class="rsvp-opt" data-value="groom">신랑측</button>
+                <button type="button" class="rsvp-opt" data-value="bride">신부측</button>
+              </div>
+            </div>
+            <div class="rsvp-field">
+              <span class="rsvp-label">참석 인원 <em>*</em></span>
+              <div class="rsvp-counter">
+                <button type="button" class="rsvp-count-btn" id="rsvp-minus" aria-label="인원 감소">−</button>
+                <span class="rsvp-count" id="rsvp-count">1명</span>
+                <button type="button" class="rsvp-count-btn" id="rsvp-plus" aria-label="인원 증가">+</button>
+              </div>
+            </div>
+            <button type="submit" class="rsvp-submit">참석 의사 전달하기</button>
+          </form>
+        </div>
+      </div>
+
       <!-- 미니맵은 유니티 패널(MinimapSystem)이 렌더 — 메뉴의 "미니맵"이 SendMessage 로 연다 -->
     </div>
 
@@ -333,6 +370,7 @@
     <script type="module">
       import { mountGuestbook } from "./assets/js/guestbook.js";
       import { subscribeWreaths, addWreath } from "./assets/js/wreaths.js";
+      import { addRsvp } from "./assets/js/rsvp.js";
 
       var gbModal = document.getElementById("gb-modal");
       var albumModal = document.getElementById("album-modal");
@@ -340,6 +378,7 @@
       var npcDialog = document.getElementById("npc-dialog");
       var wreathModal = document.getElementById("wreath-modal");
       var giftModal = document.getElementById("gift-modal");
+      var rsvpModal = document.getElementById("rsvp-modal");
       var gbWidget = null, albumDone = false, giftDone = false;
 
       // 유니티에 신호 보내기 (arg 는 선택 — SetWreathCount 처럼 값이 필요한 메서드용)
@@ -352,7 +391,7 @@
       }
       function lockMove() { sendUnity("OnVenueOverlayOpened"); }      // 창 열림 → 이동 잠금
       function anyModalOpen() {
-        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden || !giftModal.hidden;
+        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden || !giftModal.hidden || !rsvpModal.hidden;
       }
 
       // 디바이스 식별자(localStorage) — 퀘스트 1회 제한·화환 기록용. 브라우저 데이터 삭제 시 재발급됨.
@@ -456,6 +495,51 @@
         box.insertAdjacentHTML("beforeend", group("신랑 측", acc.groom) + group("신부 측", acc.bride));
         giftDone = true;
       }
+
+      // ===== 참석 여부 확인 — 마음 전하기를 닫으면 이어서 열림 · 메뉴에서도 열 수 있음 =====
+      function openRsvp() {
+        rsvpModal.hidden = false;
+        lockMove();
+      }
+
+      var rsvpForm = document.getElementById("rsvp-form");
+      rsvpForm.querySelectorAll(".rsvp-opt").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          rsvpForm.querySelectorAll(".rsvp-opt").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+        });
+      });
+      document.getElementById("rsvp-minus").addEventListener("click", function () {
+        var el = document.getElementById("rsvp-count");
+        el.textContent = Math.max(1, (parseInt(el.textContent, 10) || 1) - 1) + "명";
+      });
+      document.getElementById("rsvp-plus").addEventListener("click", function () {
+        var el = document.getElementById("rsvp-count");
+        el.textContent = Math.min(20, (parseInt(el.textContent, 10) || 1) + 1) + "명";
+      });
+      rsvpForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var name = document.getElementById("rsvp-name").value.trim();
+        var sideBtn = rsvpForm.querySelector(".rsvp-opt.active");
+        var count = parseInt(document.getElementById("rsvp-count").textContent, 10) || 1;
+        if (!name) { alert("이름을 입력해주세요."); return; }
+        if (!sideBtn) { alert("신랑측/신부측을 선택해주세요."); return; }
+        var btn = rsvpForm.querySelector(".rsvp-submit"), label = btn.textContent;
+        btn.disabled = true; btn.textContent = "전달 중…";
+        try {
+          await addRsvp(name, sideBtn.getAttribute("data-value"), count);
+          rsvpForm.reset();
+          document.getElementById("rsvp-count").textContent = "1명";
+          rsvpForm.querySelectorAll(".rsvp-opt.active").forEach(function (b) { b.classList.remove("active"); });
+          alert("참석 의사가 전달되었습니다. 감사합니다!");
+          rsvpModal.hidden = true;
+          notifyIfAllClosed();
+        } catch (err) {
+          alert(err.message || "저장에 실패했어요. 잠시 후 다시 시도해주세요.");
+        } finally {
+          btn.disabled = false; btn.textContent = label;
+        }
+      });
 
       // 계좌 복사 (버튼에 잠시 "복사됨!" 표시)
       document.getElementById("gift-body").addEventListener("click", function (e) {
@@ -746,21 +830,36 @@
       menuBtn.addEventListener("click", function () { menu.hidden ? openMenu() : closeMenu(); });
       menuBackdrop.addEventListener("click", closeMenu);
 
+      // 좌상단 메뉴의 "네비게이션" 토글 — 기본 ON, 누를 때마다 화면 밖 목적지 화살표 UI(WayfindingArrows) On/Off.
+      var guideOn = true;
+      function toggleGuideArrows() {
+        guideOn = !guideOn;
+        document.getElementById("venue-guide-state").textContent = guideOn ? "ON" : "OFF";
+        sendUnity("SetGuideArrows", guideOn ? "1" : "0");
+      }
+
       // 메뉴 항목: 각 창 열기(공통적으로 이동 잠금)
       menu.addEventListener("click", function (e) {
         var item = e.target.closest("[data-menu]");
         if (!item) return;
-        closeMenu();
         var kind = item.getAttribute("data-menu");
+        if (kind === "guide") { toggleGuideArrows(); return; }   // 토글은 메뉴를 닫지 않고 상태만 바꿈
+        closeMenu();
         if (kind === "help") { helpModal.hidden = false; lockMove(); }
         else if (kind === "guestbook") { window.OnOpenGuestbook(savedName()); }   // OnOpenGuestbook 내부에서 lockMove
+        else if (kind === "gift") { openGift(); }
+        else if (kind === "rsvp") { openRsvp(); }
       });
 
       // 닫기 버튼들 (닫히면 다른 창이 없을 때 이동 잠금 해제)
       document.getElementById("gb-close").addEventListener("click", function () { gbModal.hidden = true; notifyIfAllClosed(); });
       document.getElementById("album-close").addEventListener("click", function () { albumModal.hidden = true; notifyIfAllClosed(); });
       document.getElementById("help-close").addEventListener("click", function () { helpModal.hidden = true; notifyIfAllClosed(); });
-      document.getElementById("gift-close").addEventListener("click", function () { giftModal.hidden = true; notifyIfAllClosed(); });
+      document.getElementById("gift-close").addEventListener("click", function () {
+        giftModal.hidden = true;
+        openRsvp();   // 마음 전하기를 닫으면 이어서 참석 여부 확인 창을 띄운다
+      });
+      document.getElementById("rsvp-close").addEventListener("click", function () { rsvpModal.hidden = true; notifyIfAllClosed(); });
     </script>
   </body>
 </html>
