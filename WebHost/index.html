@@ -381,6 +381,7 @@
       var giftModal = document.getElementById("gift-modal");
       var rsvpModal = document.getElementById("rsvp-modal");
       var gbWidget = null, albumDone = false, giftDone = false;
+      var giftChainRsvp = false;   // true: 형원 NPC 대화로 연 마음 전하기라 닫으면 참석 여부 창까지 이어짐
 
       // 유니티에 신호 보내기 (arg 는 선택 — SetWreathCount 처럼 값이 필요한 메서드용)
       function sendUnity(method, arg) {
@@ -693,7 +694,7 @@
         if (npcIndex < npcLines.length - 1) { npcIndex++; showNpcLine(npcIndex); }
         else if (npcOnEnd === "choice") { npcNextEl.classList.add("hide"); npcChoicesEl.hidden = false; }
         else if (npcOnEnd === "guestbook") { closeNpcSilent(); window.OnOpenGuestbook(savedName()); }   // 방명록 작성자 = 방문자 이름(화자 이름과 분리)
-        else if (npcOnEnd === "gift") { closeNpcSilent(); openGift(); }                                 // 형원: 마음 전하기(계좌) 창으로
+        else if (npcOnEnd === "gift") { closeNpcSilent(); giftChainRsvp = true; openGift(); }            // 형원: 마음 전하기(계좌) 창으로 → 닫으면 참석 여부까지
         else if (npcOnEnd === "wreath") { openWreathForm(); }
         else closeNpc();
       }
@@ -848,7 +849,7 @@
         closeMenu();
         if (kind === "help") { helpModal.hidden = false; lockMove(); }
         else if (kind === "guestbook") { window.OnOpenGuestbook(savedName()); }   // OnOpenGuestbook 내부에서 lockMove
-        else if (kind === "gift") { openGift(); }
+        else if (kind === "gift") { giftChainRsvp = false; openGift(); }   // 메뉴로 직접 연 경우엔 닫아도 참석 여부로 이어지지 않음
         else if (kind === "rsvp") { openRsvp(); }
       });
 
@@ -858,7 +859,8 @@
       document.getElementById("help-close").addEventListener("click", function () { helpModal.hidden = true; notifyIfAllClosed(); });
       document.getElementById("gift-close").addEventListener("click", function () {
         giftModal.hidden = true;
-        openRsvp();   // 마음 전하기를 닫으면 이어서 참석 여부 확인 창을 띄운다
+        if (giftChainRsvp) { giftChainRsvp = false; openRsvp(); }   // 형원 대화로 열렸을 때만 이어서 참석 여부 확인 창
+        else notifyIfAllClosed();
       });
       document.getElementById("rsvp-close").addEventListener("click", function () { rsvpModal.hidden = true; notifyIfAllClosed(); });
     </script>
