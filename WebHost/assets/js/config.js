@@ -77,7 +77,7 @@ window.WEDDING = {
     bride: [
       {
         label: "신부 박지수",
-        bank: "농협",
+        bank: "농협은행",
         number: "62402037835",
         holder: "박지수",
       },
