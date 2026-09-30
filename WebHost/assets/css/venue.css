@@ -6,14 +6,9 @@
  * ===================================================================== */
 
 @font-face {
-  font-family: "GmarketSans";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff") format("woff");
-  font-weight: 700; font-display: swap;
-}
-@font-face {
-  font-family: "GmarketSans";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff") format("woff");
-  font-weight: 500; font-display: swap;
+  font-family: "HS활공명조";
+  src: url("../fonts/HSHwalkongSerif-Regular.woff2") format("woff2");
+  font-weight: 400; font-display: swap;
 }
 
 :root {
@@ -29,7 +24,7 @@
 html, body {
   width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
   background: #2a3b40;
-  font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif;
+  font-family: "HS활공명조", -apple-system, system-ui, sans-serif;
   /* iOS 더블탭 스마트 줌 차단 — 버튼 연타가 더블탭 줌으로 인식되면 시각적 뷰포트가 확대되어
      하단 시트가 화면 밖으로 나간다(iOS 는 user-scalable=no 를 무시).
      manipulation 은 팬/핀치는 허용, 더블탭 줌만 막아 스크롤 회귀 없음 */
@@ -80,11 +75,11 @@ html, body {
 @keyframes lobbyIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 
 .lobby-splash-label {
-  font-family: "GmarketSans", sans-serif; letter-spacing: .18em;
+  font-family: "HS활공명조", sans-serif; letter-spacing: .18em;
   font-size: .78rem; color: var(--sea-dk); margin: 0 0 14px;
 }
 .lobby-title {
-  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 2.2rem;
+  font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: 2.2rem;
   margin: 0; color: var(--ink);
 }
 .lobby-title span { color: var(--coral); font-size: 1.5rem; }
@@ -107,7 +102,7 @@ html, body {
 .gender-btn[aria-pressed="true"] { background: var(--sea); border-color: var(--sea); color: #fff; font-weight: 700; }
 
 .lobby-next, .lobby-enter, .lobby-prev {
-  font-family: "GmarketSans", sans-serif; font-weight: 500; font-size: 1rem;
+  font-family: "HS활공명조", sans-serif; font-weight: 500; font-size: 1rem;
   border: none; border-radius: 16px; padding: 15px; cursor: pointer;
 }
 .lobby-next, .lobby-enter { width: 100%; background: var(--coral); color: #fff; }
@@ -168,7 +163,7 @@ html, body {
 }
 .custom-title {
   margin: 0;
-  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .98rem; color: var(--coral);
+  font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .98rem; color: var(--coral);
 }
 .custom-hint { margin: 1px 0 0; text-align: center; font-size: .72rem; color: #7d756b; }
 /* 카테고리 탭 (가로 스크롤) */
@@ -189,7 +184,7 @@ html, body {
 .cs-arrow:disabled { opacity: .35; cursor: default; }
 .cs-label {
   min-width: 120px; text-align: center;
-  font-family: "GmarketSans", sans-serif; font-weight: 500; font-size: 1.05rem; color: var(--ink);
+  font-family: "HS활공명조", sans-serif; font-weight: 500; font-size: 1.05rem; color: var(--ink);
 }
 
 /* =========================================================
@@ -222,13 +217,13 @@ html, body {
   100% { transform: rotate(360deg) scale(1);    }
 }
 .loading-text {
-  font-family: "GmarketSans", sans-serif; font-weight: 500;
+  font-family: "HS활공명조", sans-serif; font-weight: 500;
   font-size: 1.05rem; color: var(--ink); margin: 4px 0 0;
 }
 .loading-sub { font-size: .85rem; color: #7d756b; margin: 0; }
 .link-btn {
   background: none; border: none; cursor: pointer;
-  font-family: "GmarketSans", sans-serif; font-size: .85rem;
+  font-family: "HS활공명조", sans-serif; font-size: .85rem;
   color: #7d756b; text-decoration: underline; padding: 4px; margin-top: 2px;
 }
 .lobby-notice {
@@ -269,7 +264,7 @@ html, body {
   font-size: 1rem; line-height: 1; cursor: pointer;
 }
 .venue-modal-title {
-  text-align: center; font-family: "GmarketSans", sans-serif; font-weight: 700;
+  text-align: center; font-family: "HS활공명조", sans-serif; font-weight: 700;
   font-size: 1.2rem; color: var(--coral); margin: 2px 0 16px;
 }
 
@@ -306,7 +301,7 @@ html, body {
 }
 .venue-modal .gb-name[readonly] { background: #f1ece9; color: #9b9089; cursor: not-allowed; }
 .venue-modal .gb-form button {
-  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .98rem; padding: 12px;
+  font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .98rem; padding: 12px;
   border: none; border-radius: 10px; background: var(--coral); color: #fff; cursor: pointer;
 }
 .venue-modal .gb-empty { color: #9b9089; font-size: .88rem; text-align: center; padding: 10px; }
@@ -345,7 +340,7 @@ html, body {
 @keyframes menuIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 .venue-menu-item {
   display: flex; align-items: center; gap: 10px;
-  font-family: "GmarketSans", sans-serif; font-size: .98rem; font-weight: 500;
+  font-family: "HS활공명조", sans-serif; font-size: .98rem; font-weight: 500;
   text-align: left; padding: 12px 14px; border: none; border-radius: 11px;
   background: transparent; color: var(--ink); cursor: pointer; text-decoration: none;
 }
@@ -401,7 +396,7 @@ html, body {
 }
 .npc-bubble { flex: 1 1 auto; min-width: 0; text-align: left; }
 .npc-name {
-  display: inline-block; font-family: "GmarketSans", sans-serif; font-weight: 700;
+  display: inline-block; font-family: "HS활공명조", sans-serif; font-weight: 700;
   font-size: .8rem; color: #fff; background: var(--coral);
   padding: 2px 12px; border-radius: 999px; margin-bottom: 8px;
 }
@@ -428,7 +423,7 @@ html, body {
 .npc-choices { display: flex; gap: 10px; margin-top: 12px; }
 .npc-choices[hidden] { display: none; }
 .npc-choice {
-  flex: 1; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .95rem;
+  flex: 1; font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .95rem;
   padding: 11px 0; border: none; border-radius: 12px; cursor: pointer;
 }
 .npc-choice--yes { background: var(--coral); color: #fff; }
@@ -445,7 +440,7 @@ html, body {
   box-shadow: 0 4px 14px rgba(0,0,0,.18); text-align: center;
 }
 .quest-hud[hidden] { display: none; }
-.quest-hud-title { margin: 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .75rem; color: var(--sea-dk); }
+.quest-hud-title { margin: 0; font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .75rem; color: var(--sea-dk); }
 .quest-hud-count { margin: 3px 0 0; font-size: .92rem; font-weight: 700; color: var(--ink); }
 
 /* =========================================================
@@ -465,7 +460,7 @@ html, body {
   box-shadow: 0 14px 40px rgba(0,0,0,.35); animation: npcIn .22s ease;
 }
 .pickup-art svg { width: 108px; height: 108px; display: block; margin: 0 auto; }
-.pickup-title { margin: 8px 0 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1rem; color: var(--ink); }
+.pickup-title { margin: 8px 0 0; font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: 1rem; color: var(--ink); }
 .pickup-sub { margin: 6px 0 0; font-size: .88rem; font-weight: 700; color: var(--sea-dk); }
 
 /* 화환 축하 문구 입력폼 (비니 대화창 안) */
@@ -478,7 +473,7 @@ html, body {
 }
 .npc-wreath-form input[readonly] { background: #f1ece9; color: #9b9089; }
 .npc-wreath-form button {
-  font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: .95rem;
+  font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .95rem;
   padding: 11px; border: none; border-radius: 10px; background: var(--coral); color: #fff; cursor: pointer;
 }
 .npc-wreath-form button:disabled { background: #d9d2c8; cursor: default; }
@@ -489,7 +484,7 @@ html, body {
 
 /* 축하 화환 보기 팝업 본문 */
 .wreath-view { text-align: center; padding: 8px 4px 6px; }
-.wreath-author { margin: 0; font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1.02rem; color: var(--sea-dk); }
+.wreath-author { margin: 0; font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: 1.02rem; color: var(--sea-dk); }
 .wreath-msg { margin: 12px 0 2px; font-size: 1rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* 마음 전하기(계좌) 팝업 본문 — 형원 NPC 대화 끝에 열림 */
@@ -497,7 +492,7 @@ html, body {
 .gift-intro { margin: 0; text-align: center; font-size: .88rem; line-height: 1.6; color: #6b635a; }
 .gift-group { display: flex; flex-direction: column; gap: 8px; }
 .gift-side {
-  margin: 0 0 2px; font-family: "GmarketSans", sans-serif; font-weight: 700;
+  margin: 0 0 2px; font-family: "HS활공명조", sans-serif; font-weight: 700;
   font-size: .95rem; color: var(--sea-dk);
 }
 .gift-row {
@@ -537,9 +532,9 @@ html, body {
   width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e8dfce; background: #fff;
   color: var(--sea-dk); font-size: 1.2rem; line-height: 1; cursor: pointer;
 }
-.rsvp-count { font-family: "GmarketSans", sans-serif; font-weight: 700; font-size: 1.05rem; min-width: 48px; text-align: center; }
+.rsvp-count { font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: 1.05rem; min-width: 48px; text-align: center; }
 .rsvp-submit {
-  font-family: "GmarketSans", sans-serif; font-weight: 500; font-size: .98rem;
+  font-family: "HS활공명조", sans-serif; font-weight: 500; font-size: .98rem;
   padding: 15px; border: none; border-radius: 10px;
   background: var(--coral); color: #fff; cursor: pointer; margin-top: 4px;
 }
