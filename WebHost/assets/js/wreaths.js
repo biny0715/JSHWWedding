@@ -1,6 +1,7 @@
 // wreaths.js — 축하 화환 모듈 (Firestore)
-// 퀘스트(보물찾기)를 완료한 하객이 남기는 화환 메시지. 작성순으로 슬롯 0~14가 예식장에 세워진다.
-// 15개가 넘어도 저장은 되며(신랑신부에게 전달), 예식장에는 첫 15개만 표시된다.
+// 퀘스트(보물찾기)를 완료한 하객이 남기는 화환 메시지. 작성순으로 슬롯 0~15(총 16개)가 예식장에 세워진다.
+// 슬롯 0은 관리자가 미리 채워둔 예시 화환 — 하객 몫은 실질 15자리. 16개가 넘어도 저장은 되며
+// (신랑신부에게 전달), 예식장에는 첫 16개만 표시된다.
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp
@@ -20,7 +21,7 @@ const db = getFirestore(app);
 const COL = "wreaths";
 const MAX_NAME = 30, MAX_MSG = 50;
 
-/** 실시간 구독(작성순). cb(list) — list[i] = {id, author, message, deviceId}, i = 화환 슬롯(0~14만 표시됨).
+/** 실시간 구독(작성순). cb(list) — list[i] = {id, author, message, deviceId}, i = 화환 슬롯(0~15만 표시됨).
  *  화환이 추가/삭제될 때마다 cb 가 다시 불린다. 반환값 = 구독 해제 함수. */
 export function subscribeWreaths(cb) {
   return onSnapshot(

@@ -410,10 +410,11 @@
       }
 
       // ===== 축하 화환 — Firestore 실시간 구독 =====
-      // 목록(작성순)이 바뀔 때마다 유니티에 개수를 보내 CelebrateFlowers 자식(슬롯 0~14)을 켠다.
+      // 목록(작성순)이 바뀔 때마다 유니티에 개수를 보내 CelebrateFlowers 자식(슬롯 0~15, 총 16개)을 켠다.
+      // 슬롯 0(맨 처음 작성분)은 관리자가 미리 채워둔 예시 화환 — 하객에게는 실질적으로 15자리가 선착순.
       var wreathList = null;   // null = 아직 로드 전
       function pushWreathCount() {
-        if (wreathList) sendUnity("SetWreathCount", String(Math.min(wreathList.length, 15)));
+        if (wreathList) sendUnity("SetWreathCount", String(Math.min(wreathList.length, 16)));
       }
       subscribeWreaths(function (list) {
         wreathList = list;
@@ -612,7 +613,9 @@
         npcNameEl.textContent = (name && String(name).trim()) || npcCfg.name || "비니";
         npcAvatarEl.textContent = npcCfg.emoji || NPC_DEFAULT.emoji;
 
-        var wreathRemain = wreathList ? Math.max(0, 15 - wreathList.length) : null;
+        // 총 자리는 16(관리자 예시 1개 포함)이지만 예시분은 이미 채워진 것으로 치므로
+        // 하객에게 안내되는 "남은 자리"는 16-작성수 그대로 계산하면 자연히 최대 15부터 시작한다.
+        var wreathRemain = wreathList ? Math.max(0, 16 - wreathList.length) : null;
 
         var lines, onEnd = "close";
         if (mode === "help") {
@@ -703,7 +706,7 @@
       function openWreathForm() {
         npcNextEl.classList.add("hide");
         document.getElementById("wreath-name").value = savedName();
-        document.getElementById("wreath-note").hidden = !(wreathList && wreathList.length >= 15);
+        document.getElementById("wreath-note").hidden = !(wreathList && wreathList.length >= 16);
         wreathFormEl.hidden = false;
       }
 
