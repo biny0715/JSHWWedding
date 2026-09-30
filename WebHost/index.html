@@ -336,6 +336,7 @@
       function fitToViewport() {
         canvas.style.width = "100vw";
         canvas.style.height = "100vh";
+        canvas.style.height = "100dvh";   // 지원 브라우저는 툴바 제외 실제 높이로 갱신(미지원은 위 100vh 유지)
       }
 
       document.querySelector("#unity-container").className = "unity-mobile";

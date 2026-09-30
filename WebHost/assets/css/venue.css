@@ -35,8 +35,11 @@ html, body {
 #ui-overlay button, #ui-overlay input, #ui-overlay textarea, #ui-overlay a { touch-action: manipulation; }
 
 /* Unity 전체화면 (배경 레이어) */
-#unity-container { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0; background: #2a3b40; }
-#unity-canvas { display: block; width: 100vw; height: 100vh; background: #2a3b40; outline: none; }
+/* dvh: 브라우저 URL바 등 접혔다 폈다 하는 툴바를 제외한 실제 보이는 높이.
+   100vh 고정이면 iOS/삼성인터넷 툴바 높이가 기종마다 달라 화면 하단 UI(길 안내 화살표 등) 위치가
+   기종별로 들쭉날쭉해진다 → 미지원 브라우저는 100vh 폴백, 지원하면 100dvh 로 실제 높이 추적. */
+#unity-container { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; margin: 0; padding: 0; background: #2a3b40; }
+#unity-canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; background: #2a3b40; outline: none; }
 #unity-footer { display: none !important; }
 
 @supports (padding: env(safe-area-inset-top)) {
