@@ -55,7 +55,7 @@
         <button type="button" class="venue-menu-item" data-menu="gift"><span class="venue-menu-ic">💌</span>마음 전하기</button>
         <button type="button" class="venue-menu-item" data-menu="rsvp"><span class="venue-menu-ic">📋</span>참석 여부</button>
         <button type="button" class="venue-menu-item" data-menu="guide" id="venue-guide-toggle">
-          <span class="venue-menu-ic">🧭</span>네비게이션
+          <span class="venue-menu-ic">🧭</span>길 안내
           <span class="venue-menu-state" id="venue-guide-state">ON</span>
         </button>
         <a class="venue-menu-item" href="https://biny0715.github.io/JSHWWedding_WebGL/"><span class="venue-menu-ic">←</span>청첩장으로</a>
@@ -830,7 +830,7 @@
       menuBtn.addEventListener("click", function () { menu.hidden ? openMenu() : closeMenu(); });
       menuBackdrop.addEventListener("click", closeMenu);
 
-      // 좌상단 메뉴의 "네비게이션" 토글 — 기본 ON, 누를 때마다 화면 밖 목적지 화살표 UI(WayfindingArrows) On/Off.
+      // 좌상단 메뉴의 "길 안내" 토글 — 기본 ON, 누를 때마다 화면 밖 목적지 화살표 UI(WayfindingArrows) On/Off.
       var guideOn = true;
       function toggleGuideArrows() {
         guideOn = !guideOn;
