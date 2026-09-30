@@ -45,12 +45,13 @@ namespace JSHWWedding
         void Awake() { instance = this; Active = false; }
         void OnDestroy() { if (instance == this) instance = null; }
 
-        /// <summary>해당 NPC 정면을 바라보는 뷰로 즉시 컷 전환. headHeight 로 NPC별 바라볼 높이(m) 지정.</summary>
-        public static void Focus(Transform npc, float headHeight = HeadHeight) { if (instance != null) instance.DoFocus(npc, headHeight); }
+        /// <summary>해당 NPC 정면을 바라보는 뷰로 즉시 컷 전환. headHeight 로 NPC별 바라볼 높이(m),
+        /// extraCamRaise 로 시선(head)은 그대로 두고 카메라 위치만 추가로 더 높일 양(m) 지정.</summary>
+        public static void Focus(Transform npc, float headHeight = HeadHeight, float extraCamRaise = 0f) { if (instance != null) instance.DoFocus(npc, headHeight, extraCamRaise); }
         /// <summary>게임플레이 카메라로 복귀(대화 중이 아니면 무시).</summary>
         public static void Unfocus() { if (instance != null) instance.DoUnfocus(); }
 
-        void DoFocus(Transform npc, float headHeight)
+        void DoFocus(Transform npc, float headHeight, float extraCamRaise = 0f)
         {
             if (npc == null) return;
             cam = Camera.main;
@@ -61,7 +62,7 @@ namespace JSHWWedding
             Vector3 head = npc.position + Vector3.up * headHeight;
             Vector3 fwd = npc.forward; fwd.y = 0f;
             fwd = (fwd.sqrMagnitude < 1e-4f) ? Vector3.forward : fwd.normalized;
-            lockPos = head + fwd * Distance + Vector3.up * CamRaise;
+            lockPos = head + fwd * Distance + Vector3.up * (CamRaise + extraCamRaise);
             lockRot = Quaternion.LookRotation((head - lockPos).normalized, Vector3.up);
 
             if (brain != null) brain.enabled = false;   // 브레인 정지 → 블렌드 없이 즉시 컷

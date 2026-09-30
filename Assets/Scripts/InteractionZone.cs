@@ -103,7 +103,7 @@ namespace JSHWWedding
             {
                 // "축하하기"(FlowerDecoZone) — 신부 앞 축하 대화이므로 말걸기와 동일하게 신부 정면 즉시컷.
                 var bride = FindNpcByName("신부\n박지수");
-                if (bride != null) NpcDialogCamera.Focus(bride, 0.45f);
+                if (bride != null) NpcDialogCamera.Focus(bride, 0.45f, 0.15f);   // 카메라 위치를 조금 더 높게
                 VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
             }
             else if (action == ZoneAction.Album) VenueWeb.OpenAlbum();
