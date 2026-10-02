@@ -245,7 +245,7 @@
         </div>
       </div>
 
-      <!-- 마음 전하기 창 (형원 NPC 대화 끝 → 계좌 안내, config.js 의 accounts 사용) -->
+      <!-- 마음 전하기 창 (메뉴 → 계좌 안내, config.js 의 accounts 사용) -->
       <div class="venue-modal" id="gift-modal" hidden>
         <div class="venue-modal-card">
           <button class="venue-modal-close" id="gift-close" type="button" aria-label="닫기">✕</button>
@@ -256,7 +256,7 @@
         </div>
       </div>
 
-      <!-- 참석 여부 확인 창 (마음 전하기를 닫으면 이어서 열림 · 메뉴에서도 바로 열 수 있음) -->
+      <!-- 참석 여부 확인 창 (형원 NPC 대화 끝에 열림 · 메뉴에서도 바로 열 수 있음) -->
       <div class="venue-modal" id="rsvp-modal" hidden>
         <div class="venue-modal-card">
           <button class="venue-modal-close" id="rsvp-close" type="button" aria-label="닫기">✕</button>
@@ -381,8 +381,6 @@
       var giftModal = document.getElementById("gift-modal");
       var rsvpModal = document.getElementById("rsvp-modal");
       var gbWidget = null, albumDone = false, giftDone = false;
-      var giftChainRsvp = false;   // true: 형원 NPC 대화로 연 마음 전하기라 닫으면 참석 여부 창까지 이어짐
-
       // 유니티에 신호 보내기 (arg 는 선택 — SetWreathCount 처럼 값이 필요한 메서드용)
       function sendUnity(method, arg) {
         if (!window.unityInstance) return;
@@ -469,7 +467,7 @@
         albumDone = true;
       }
 
-      // ===== 마음 전하기(계좌) — 형원 NPC 대화 끝에 열림 =====
+      // ===== 마음 전하기(계좌) — 메뉴에서 열림 =====
       function openGift() {
         renderGift();
         giftModal.hidden = false;
@@ -499,7 +497,7 @@
         giftDone = true;
       }
 
-      // ===== 참석 여부 확인 — 마음 전하기를 닫으면 이어서 열림 · 메뉴에서도 열 수 있음 =====
+      // ===== 참석 여부 확인 — 형원 NPC 대화 끝에 열림 · 메뉴에서도 열 수 있음 =====
       function openRsvp() {
         rsvpModal.hidden = false;
         lockMove();
@@ -626,11 +624,11 @@
           onEnd = "close";
         }
         else if (mode === "groom") {
-          // 형원(신랑 NPC): 인사 대사 후 '마음 전하기'(계좌) 창이 열림.
+          // 형원(신랑 NPC): 인사 대사 후 '참석 여부 확인' 창이 열림.
           var hw = (window.WEDDING && window.WEDDING.hw) || {};
           npcAvatarEl.textContent = hw.emoji || "🤵";
           lines = (hw.lines && hw.lines.length) ? hw.lines : ["안녕하세요, 신랑 김형원이라고 합니다."];
-          onEnd = "gift";
+          onEnd = "rsvp";
         }
         else if (mode === "celebrate") {
           lines = npcCfg.celebrate; onEnd = "guestbook";
@@ -697,7 +695,7 @@
         if (npcIndex < npcLines.length - 1) { npcIndex++; showNpcLine(npcIndex); }
         else if (npcOnEnd === "choice") { npcNextEl.classList.add("hide"); npcChoicesEl.hidden = false; }
         else if (npcOnEnd === "guestbook") { closeNpcSilent(); window.OnOpenGuestbook(savedName()); }   // 방명록 작성자 = 방문자 이름(화자 이름과 분리)
-        else if (npcOnEnd === "gift") { closeNpcSilent(); giftChainRsvp = true; openGift(); }            // 형원: 마음 전하기(계좌) 창으로 → 닫으면 참석 여부까지
+        else if (npcOnEnd === "rsvp") { closeNpcSilent(); openRsvp(); }                                 // 형원: 참석 여부 확인 창으로
         else if (npcOnEnd === "wreath") { openWreathForm(); }
         else closeNpc();
       }
@@ -852,7 +850,7 @@
         closeMenu();
         if (kind === "help") { helpModal.hidden = false; lockMove(); }
         else if (kind === "guestbook") { window.OnOpenGuestbook(savedName()); }   // OnOpenGuestbook 내부에서 lockMove
-        else if (kind === "gift") { giftChainRsvp = false; openGift(); }   // 메뉴로 직접 연 경우엔 닫아도 참석 여부로 이어지지 않음
+        else if (kind === "gift") { openGift(); }
         else if (kind === "rsvp") { openRsvp(); }
       });
 
@@ -862,8 +860,7 @@
       document.getElementById("help-close").addEventListener("click", function () { helpModal.hidden = true; notifyIfAllClosed(); });
       document.getElementById("gift-close").addEventListener("click", function () {
         giftModal.hidden = true;
-        if (giftChainRsvp) { giftChainRsvp = false; openRsvp(); }   // 형원 대화로 열렸을 때만 이어서 참석 여부 확인 창
-        else notifyIfAllClosed();
+        notifyIfAllClosed();
       });
       document.getElementById("rsvp-close").addEventListener("click", function () { rsvpModal.hidden = true; notifyIfAllClosed(); });
     </script>
