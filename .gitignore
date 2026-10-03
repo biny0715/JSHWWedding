@@ -124,3 +124,10 @@ Assets/.mcp_auth_token
 
 # --- MCP editor screenshots (로컬 전용) ---
 Assets/.screenshots/
+
+# --- Blender 원본/렌더/백업 (대용량, 로컬 전용) — BlenderSource/ 는 .py 스크립트만 버전관리 ---
+BlenderSource/*.blend
+BlenderSource/*.blend1
+BlenderSource/renders/
+BlenderSource/backup_*/
+BlenderSource/tripo_input/
