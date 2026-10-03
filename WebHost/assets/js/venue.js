@@ -201,7 +201,8 @@
   }
 
   function showSlowGuide() {
-    if (loadingSub) loadingSub.textContent = "접속이 지연되고 있어요. 저전력 모드를 끄고 새로고침 해 주세요.";
+    if (loadingSub) loadingSub.textContent = "접속이 지연되고 있어요. 저전력 모드를 끄고 새로고침 해 주세요.\n" +   //  : '해 주세요' 가 줄바꿈으로 갈라지지 않게
+      "계속 접속이 되지 않는 경우, 서버가 원활하지 않거나 지원하지 않는 스마트폰일 수도 있습니다.";
     setDisplay(retryBtn, "");
   }
 

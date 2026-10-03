@@ -225,11 +225,11 @@
         <span class="quest-hud-tip">💡 눌러서 힌트 보기</span>
       </button>
 
-      <!-- 보물찾기 힌트 창 (퀘스트 HUD 를 누르면 열림, config.js 의 npc.questHintSpots 사용) -->
+      <!-- 물건찾기 힌트 창 (퀘스트 HUD 를 누르면 열림, config.js 의 npc.questHintSpots 사용) -->
       <div class="venue-modal" id="hint-modal" hidden>
         <div class="venue-modal-card">
           <button class="venue-modal-close" id="hint-close" type="button" aria-label="닫기">✕</button>
-          <h2 class="venue-modal-title">보물찾기 힌트</h2>
+          <h2 class="venue-modal-title">물건찾기 힌트</h2>
           <p class="hint-progress" id="hint-progress"></p>
           <p class="hint-lead">핑크색 선물상자를 찾아보세요! 아래 장소 근처에 숨어 있어요.</p>
           <ul class="hint-list" id="hint-list"></ul>
@@ -849,7 +849,7 @@
         questHud.hidden = false;
       };
 
-      // ===== 보물찾기 힌트 창 — 퀘스트 HUD 를 누르면 열림 =====
+      // ===== 물건찾기 힌트 창 — 퀘스트 HUD 를 누르면 열림 =====
       questHud.addEventListener("click", function () {
         var npc = (window.WEDDING && window.WEDDING.npc) || {};
         var d = questHudState, goal = (d.goal | 0) || (d.total | 0);
