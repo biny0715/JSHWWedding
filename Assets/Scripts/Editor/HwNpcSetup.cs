@@ -20,7 +20,7 @@ namespace JSHWWedding.Customization.EditorTools
         //   피부5 눈4 머리29 상의4 하의5 눈썹1 신발3 가방없음 수염없음 안경없음 모자없음
         // CharacterLook.parts 는 0-based(슬롯1..11 → 인덱스0..10), -1 = 없음.
         const int HwGender = 0;   // 0=male
-        const string HwName = "형원";   // 머리 위 이름표
+        const string HwName = "신랑\n김형원";   // 머리 위 이름표(2줄: 역할 + 이름)
         static readonly int[] HwParts = { 4, 3, 28, 3, 4, 0, 2, -1, -1, -1, -1 };
         //                                skin eyes hair upper pants brows boots back beard glass hats
 

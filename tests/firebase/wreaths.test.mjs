@@ -1,7 +1,7 @@
 // wreaths.test.mjs — 축하 화환 Firestore 통합 테스트 (에뮬레이터)
 // 검증 대상(앱 규약, wreaths.js / index.html):
-//   - 작성순: orderBy("createdAt","asc") → 화환 슬롯 0..14 = 작성 순서
-//   - 15슬롯 표시 캡: SetWreathCount = min(len, 15) (초과분 저장은 되나 미표시)
+//   - 작성순: orderBy("createdAt","asc") → 화환 슬롯 0..30 = 작성 순서
+//   - 31슬롯 표시 캡(예시 1 + 선착순 30): SetWreathCount = min(len, 31) (초과분 저장은 되나 미표시)
 //   - 보안 규칙(제안): 공개 읽기 / 길이 검증 생성 / 수정·삭제 불가
 import { readFileSync } from "node:fs";
 import { test, before, after, beforeEach } from "node:test";
@@ -16,7 +16,7 @@ import {
 } from "firebase/firestore";
 
 const COL = "wreaths";
-const displayCount = (n) => Math.min(n, 15); // index.html: SetWreathCount(min(len,15))
+const displayCount = (n) => Math.min(n, 31); // index.html: SetWreathCount(min(len, WREATH_SLOTS=31))
 const wreath = (author, message, createdAt) => ({ author, message, deviceId: "dev-x", createdAt });
 
 let env;
@@ -45,10 +45,11 @@ test("작성순: createdAt asc 로 작성 순서대로 반환된다", async () =
   assert.deepEqual(snap.docs.map((d) => d.data().author), ["가", "나", "다"]);
 });
 
-test("15슬롯 캡: 초과분은 표시에서 제외(저장은 됨)", () => {
+test("31슬롯 캡: 초과분은 표시에서 제외(저장은 됨)", () => {
   assert.equal(displayCount(3), 3);
-  assert.equal(displayCount(15), 15);
-  assert.equal(displayCount(20), 15);
+  assert.equal(displayCount(16), 16);   // CelebrateFlowers 가득 → 다음부터 CelebrateFlowers (1)
+  assert.equal(displayCount(31), 31);
+  assert.equal(displayCount(40), 31);
 });
 
 test("규칙: 유효한 화환 생성은 허용된다", async () => {

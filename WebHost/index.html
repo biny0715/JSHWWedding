@@ -209,7 +209,7 @@
             <div class="npc-wreath-form" id="npc-wreath-form" hidden>
               <input type="text" id="wreath-name" readonly>
               <textarea id="wreath-text" maxlength="50" rows="2" placeholder="화환에 걸 축하 문구 (50자 이내)"></textarea>
-              <p class="wreath-note" id="wreath-note" hidden>화환 자리(15개)가 모두 찼어요. 그래도 메시지는 신랑신부에게 전달돼요!</p>
+              <p class="wreath-note" id="wreath-note" hidden>선착순 화환 자리(30개)가 모두 찼어요. 그래도 메시지는 신랑신부에게 전달돼요!</p>
               <button type="button" id="wreath-submit">화환 걸기</button>
             </div>
           </div>
@@ -408,11 +408,13 @@
       }
 
       // ===== 축하 화환 — Firestore 실시간 구독 =====
-      // 목록(작성순)이 바뀔 때마다 유니티에 개수를 보내 CelebrateFlowers 자식(슬롯 0~15, 총 16개)을 켠다.
-      // 슬롯 0(맨 처음 작성분)은 관리자가 미리 채워둔 예시 화환 — 하객에게는 실질적으로 15자리가 선착순.
+      // 목록(작성순)이 바뀔 때마다 유니티에 개수를 보내 화환(슬롯 0~30, 총 31개)을 켠다.
+      //   유니티: CelebrateFlowers 16개(0~15) → CelebrateFlowers (1) 15개(16~30) 순서로 채움.
+      // 슬롯 0(맨 처음 작성분)은 관리자가 미리 채워둔 예시 화환 — 하객에게는 실질적으로 30자리가 선착순.
+      var WREATH_SLOTS = 31;
       var wreathList = null;   // null = 아직 로드 전
       function pushWreathCount() {
-        if (wreathList) sendUnity("SetWreathCount", String(Math.min(wreathList.length, 16)));
+        if (wreathList) sendUnity("SetWreathCount", String(Math.min(wreathList.length, WREATH_SLOTS)));
       }
       subscribeWreaths(function (list) {
         wreathList = list;
@@ -583,7 +585,7 @@
         name: "비니", emoji: "🌊",
         questIntro: ["안녕! 나는 비니라고 해.", "잃어버린 결혼식 물품들을 찾아줄 수 있을까?"],
         questAccepted: ["고마워! 물품들은 예식장 어딘가에 숨겨져 있어.", "다 찾으면 다시 여기로 와!"],
-        questProgress: ["아직 {remain}개 남았어! ({found}/{total})"],
+        questProgress: ["아직 {remain}개 남았어! ({found}/{goal})"],
         questComplete: ["전부 찾아줬구나! 정말 고마워!"],
         questDone: ["와줘서 정말 고마워 💐"],
         celebrate: ["축하해주러 와줘서 고마워!", "방명록에 축하 메시지를 남겨줄래?"],
@@ -594,26 +596,28 @@
         try { return localStorage.getItem("jshw_quest_done") === "1"; } catch (e) { return false; }
       }
       function fillTokens(s, st) {
-        var remain = Math.max(0, (st.total | 0) - (st.found | 0));
-        return s.replace(/\{found\}/g, st.found | 0).replace(/\{total\}/g, st.total | 0).replace(/\{remain\}/g, remain);
+        var remain = Math.max(0, (st.goal | 0) - (st.found | 0));
+        return s.replace(/\{found\}/g, st.found | 0).replace(/\{total\}/g, st.total | 0)
+                .replace(/\{goal\}/g, st.goal | 0).replace(/\{remain\}/g, remain);
       }
 
       // 유니티 → 웹: 대화창 열기 (jslib OpenWeddingNpcDialog)
       window.OnOpenNpcDialog = function (name, mode, stateJson) {
         gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true; giftModal.hidden = true;
         npcCfg = (window.WEDDING && window.WEDDING.npc) || NPC_DEFAULT;
-        var st = { accepted: false, found: 0, total: 0 };
+        var st = { accepted: false, found: 0, total: 0, goal: 0 };
         try {
           var p = JSON.parse(stateJson || "{}");
           st.accepted = !!p.accepted; st.found = p.found | 0; st.total = p.total | 0;
+          st.goal = (p.goal | 0) || st.total;   // goal = 성공에 필요한 개수(6개 중 4개). 구버전 빌드면 전체 개수
         } catch (e) {}
 
         npcNameEl.textContent = (name && String(name).trim()) || npcCfg.name || "비니";
         npcAvatarEl.textContent = npcCfg.emoji || NPC_DEFAULT.emoji;
 
-        // 총 자리는 16(관리자 예시 1개 포함)이지만 예시분은 이미 채워진 것으로 치므로
-        // 하객에게 안내되는 "남은 자리"는 16-작성수 그대로 계산하면 자연히 최대 15부터 시작한다.
-        var wreathRemain = wreathList ? Math.max(0, 16 - wreathList.length) : null;
+        // 총 자리는 31(관리자 예시 1개 포함)이지만 예시분은 이미 채워진 것으로 치므로
+        // 하객에게 안내되는 "남은 자리"는 31-작성수 그대로 계산하면 자연히 최대 30부터 시작한다.
+        var wreathRemain = wreathList ? Math.max(0, WREATH_SLOTS - wreathList.length) : null;
 
         var lines, onEnd = "close";
         if (mode === "help") {
@@ -643,7 +647,7 @@
           if (wreathRemain === 0 && npcCfg.questIntroFullNote) lines.push(npcCfg.questIntroFullNote);
           onEnd = "choice";
         }
-        else if (st.total > 0 && st.found >= st.total) { lines = npcCfg.questComplete; onEnd = "wreath"; }  // 모두 찾음 → 화환 입력
+        else if (st.goal > 0 && st.found >= st.goal) { lines = npcCfg.questComplete; onEnd = "wreath"; }  // 목표(4개) 찾음 → 화환 입력
         else {                                                                            // 진행 중: 남은 개수 + 화환 자리
           lines = (npcCfg.questProgress || []).map(function (s) { return fillTokens(s, st); });
           if (wreathRemain !== null && npcCfg.questProgressWreath)
@@ -704,7 +708,7 @@
       function openWreathForm() {
         npcNextEl.classList.add("hide");
         document.getElementById("wreath-name").value = savedName();
-        document.getElementById("wreath-note").hidden = !(wreathList && wreathList.length >= 16);
+        document.getElementById("wreath-note").hidden = !(wreathList && wreathList.length >= WREATH_SLOTS);
         wreathFormEl.hidden = false;
       }
 
@@ -744,7 +748,7 @@
       });
 
       // 화환 걸기(제출): Firestore 저장 → 이 기기 퀘스트 완료 처리 → 감사 대사.
-      // 제출 순간 15자리가 그 사이 다 찼는지 재확인 → 찼으면 "그래도 메시지는 전달" 안내(저장은 됨).
+      // 제출 순간 선착순 자리가 그 사이 다 찼는지 재확인 → 찼으면 "그래도 메시지는 전달" 안내(저장은 됨).
       document.getElementById("wreath-submit").addEventListener("click", async function (e) {
         e.stopPropagation();
         var msgEl = document.getElementById("wreath-text");
@@ -753,7 +757,7 @@
         var btn = this, label = btn.textContent;
         btn.disabled = true; btn.textContent = "거는 중…";
         try {
-          var wasFull = wreathList && wreathList.length >= 15;
+          var wasFull = wreathList && wreathList.length >= WREATH_SLOTS;
           await addWreath(savedName(), msg, deviceId());
           try { localStorage.setItem("jshw_quest_done", "1"); } catch (err) {}
           questHud.hidden = true;   // 퀘스트 끝 → HUD 정리
@@ -778,9 +782,10 @@
         var label = (it && it.label) || d.item || "물건";
         document.getElementById("pickup-art").innerHTML = (it && it.svg) || "";
         document.getElementById("pickup-title").textContent = "'" + label + "'을(를) 획득했습니다!";
-        var remain = Math.max(0, (d.total | 0) - (d.found | 0));
+        var goal = (d.goal | 0) || (d.total | 0);
+        var remain = Math.max(0, goal - (d.found | 0));
         document.getElementById("pickup-sub").textContent =
-          remain > 0 ? "남은 물건 " + remain + "개" : "모든 물건을 찾았다! 비니에게 가자 ✨";
+          remain > 0 ? goal + "개까지 " + remain + "개 남았어요" : goal + "개를 모두 찾았다! 비니에게 가자 ✨";
         pickupToast.hidden = false;
         if (pickupTimer) clearTimeout(pickupTimer);
         pickupTimer = setTimeout(function () { pickupToast.hidden = true; }, 2800);
@@ -808,11 +813,11 @@
         try { d = JSON.parse(json || "{}"); } catch (e) {}
         if (!d.state || d.state === "hidden") { questHud.hidden = true; return; }
         if (d.state === "complete") {
-          questHudTitle.textContent = "모두 찾았다!";
+          questHudTitle.textContent = ((d.goal | 0) || (d.total | 0)) + "개 찾았다!";
           questHudCount.textContent = "비니에게 가자 ✨";
         } else {
-          questHudTitle.textContent = "물건을 찾아라";
-          questHudCount.textContent = (d.found | 0) + " / " + (d.total | 0) + " 개";
+          questHudTitle.textContent = (d.total | 0) + "개 중 " + ((d.goal | 0) || (d.total | 0)) + "개를 찾아라";
+          questHudCount.textContent = (d.found | 0) + " / " + ((d.goal | 0) || (d.total | 0)) + " 개";
         }
         questHud.hidden = false;
       };

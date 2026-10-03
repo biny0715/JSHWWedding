@@ -19,9 +19,13 @@ namespace JSHWWedding
         public int Found { get; private set; }
         /// <summary>전체 물건 수(씬의 활성 PickupZone 개수).</summary>
         public int Total { get; private set; }
+        /// <summary>완료에 필요한 개수 — 전체(6개) 중 이만큼만 찾으면 성공(난이도 조정).</summary>
+        public const int RequiredCount = 4;
+        /// <summary>목표 개수(물건이 RequiredCount 보다 적게 배치됐으면 전체 개수).</summary>
+        public int Goal => Mathf.Min(RequiredCount, Total);
 
         [System.Serializable]
-        struct StateDto { public bool accepted; public int found; public int total; }
+        struct StateDto { public bool accepted; public int found; public int total; public int goal; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
@@ -53,6 +57,7 @@ namespace JSHWWedding
                 accepted = q != null && q.Accepted,
                 found = q != null ? q.Found : 0,
                 total = q != null ? q.Total : 0,
+                goal = q != null ? q.Goal : 0,
             };
             return JsonUtility.ToJson(dto);
         }
@@ -68,7 +73,7 @@ namespace JSHWWedding
             RecountTargets();
             if (Total == 0) Debug.LogWarning("[QuestManager] 씬에 PickupZone 이 없습니다 — 보물(빈 GO + PickupZone)을 배치하세요.");
             PushHud();
-            Debug.Log($"[QuestManager] 퀘스트 수락 — 목표 {Total}개");
+            Debug.Log($"[QuestManager] 퀘스트 수락 — 목표 {Goal}/{Total}개");
         }
 
         /// <summary>PickupZone '줍기' → 카운트 증가 + HUD 갱신 + 획득 팝업(웹).</summary>
@@ -78,20 +83,20 @@ namespace JSHWWedding
             Found = Mathf.Min(Found + 1, Total);
             PushHud();
             // 웹 획득 팝업: "'OOO'을 획득했습니다 / 남은 물건 n개" (+ config.js 의 아이템 그림)
-            VenueWeb.ItemPickup($"{{\"item\":\"{itemKey}\",\"found\":{Found},\"total\":{Total}}}");
+            VenueWeb.ItemPickup($"{{\"item\":\"{itemKey}\",\"found\":{Found},\"total\":{Total},\"goal\":{Goal}}}");
             Debug.Log($"[QuestManager] 물건 획득 '{itemKey}' {Found}/{Total}");
         }
 
         [ContextMenu("물건 획득 (에디터 테스트)")]
         void TestPickup() => OnPickedUp("TestItem");
 
-        /// <summary>모두 찾았는지(수락 상태에서).</summary>
-        public bool AllFound => Accepted && Total > 0 && Found >= Total;
+        /// <summary>목표 개수(Goal)를 찾았는지(수락 상태에서).</summary>
+        public bool AllFound => Accepted && Total > 0 && Found >= Goal;
 
         void PushHud()
         {
             string state = !Accepted ? "hidden" : (AllFound ? "complete" : "active");
-            VenueWeb.QuestHud($"{{\"state\":\"{state}\",\"found\":{Found},\"total\":{Total}}}");
+            VenueWeb.QuestHud($"{{\"state\":\"{state}\",\"found\":{Found},\"total\":{Total},\"goal\":{Goal}}}");
         }
     }
 }

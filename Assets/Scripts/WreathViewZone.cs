@@ -2,7 +2,7 @@
 // 축하 화환(CelebrateFlowers 자식) 근접 '보기' 버튼. 누르면 웹 팝업(작성자/축하 문구)이 뜬다.
 //  - 웹이 Firestore 화환 개수를 SendMessage("WebBridge","SetWreathCount","n") 로 보내면
 //    ApplyCount 가 자식 0..n-1 활성화 + 이 컴포넌트 부착(슬롯 번호 지정)을 처리한다.
-//  - 화환 슬롯 = CelebrateFlowers 자식 인덱스 = Firestore 작성순(0~14).
+//  - 화환 슬롯 = CelebrateFlowers(0~15) → CelebrateFlowers (1)(16~30) 자식 순서 = Firestore 작성순.
 // 버튼 UI 방식은 InteractionZone(월드 캔버스 빌보드 버튼)과 동일.
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +13,7 @@ namespace JSHWWedding
 {
     public class WreathViewZone : MonoBehaviour
     {
-        [Tooltip("이 화환의 슬롯 번호(0~14) — 웹 화환 목록 인덱스와 매칭")]
+        [Tooltip("이 화환의 슬롯 번호(0~30) — 웹 화환 목록 인덱스와 매칭")]
         public int slot;
         [Tooltip("플레이어가 이 거리(m) 안에 들어오면 '보기' 버튼 표시")]
         public float activateRadius = 3.5f;
@@ -28,24 +28,32 @@ namespace JSHWWedding
         Bounds zoneBounds;
         bool boundsReady;
 
-        /// <summary>웹 → 화환 개수 반영: CelebrateFlowers 자식 0..count-1 활성화(+존 부착), 나머지 비활성화.</summary>
+        // 화환 그룹(순서대로 채움): CelebrateFlowers 16개(슬롯 0~15) → CelebrateFlowers (1) 15개(슬롯 16~30)
+        static readonly string[] Groups = { "CelebrateFlowers", "CelebrateFlowers (1)" };
+
+        /// <summary>웹 → 화환 개수 반영: 그룹 자식들을 순서대로 이어 슬롯 0..count-1 활성화(+존 부착), 나머지 비활성화.</summary>
         public static void ApplyCount(int count)
         {
-            var root = GameObject.Find("CelebrateFlowers");
-            if (root == null) return;   // Wedding 씬이 아직 아님 — WebLobbyBridge 가 씬 로드 후 재적용
-            var t = root.transform;
-            for (int i = 0; i < t.childCount; i++)
+            if (GameObject.Find(Groups[0]) == null) return;   // Wedding 씬이 아직 아님 — WebLobbyBridge 가 씬 로드 후 재적용
+            int slot = 0;
+            foreach (var g in Groups)
             {
-                var child = t.GetChild(i).gameObject;
-                bool on = i < count;
-                if (child.activeSelf != on) child.SetActive(on);
-                if (on && child.GetComponent<WreathViewZone>() == null)
+                var root = GameObject.Find(g);
+                if (root == null) { Debug.LogWarning($"[WreathViewZone] '{g}' 없음"); continue; }
+                var t = root.transform;
+                for (int i = 0; i < t.childCount; i++, slot++)
                 {
-                    var z = child.AddComponent<WreathViewZone>();
-                    z.slot = i;
+                    var child = t.GetChild(i).gameObject;
+                    bool on = slot < count;
+                    if (child.activeSelf != on) child.SetActive(on);
+                    if (on && child.GetComponent<WreathViewZone>() == null)
+                    {
+                        var z = child.AddComponent<WreathViewZone>();
+                        z.slot = slot;
+                    }
                 }
             }
-            Debug.Log($"[WreathViewZone] 화환 {Mathf.Min(count, t.childCount)}/{t.childCount}개 활성화");
+            Debug.Log($"[WreathViewZone] 화환 {Mathf.Min(count, slot)}/{slot}개 활성화");
         }
 
         void EnsureBounds()

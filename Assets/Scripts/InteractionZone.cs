@@ -174,7 +174,7 @@ namespace JSHWWedding
         {
             AttachTalkTo("비니", "말걸기", "npc", 4f, 1f);
             AttachTalkTo("지니", "도움말", "help", 3f, 0.45f);
-            AttachTalkTo("형원", "말걸기", "groom", 3f, 0.45f);   // 신랑 — 지니와 동일한 버튼/카메라 구도
+            AttachTalkTo("형원", "말걸기", "groom", 3f, 0.45f, "신랑\n김형원");   // 신랑 — 지니와 동일한 버튼/카메라 구도(이름표는 2줄)
             // 신부는 별도 "말걸기" 버튼을 만들지 않음 — 기존 "축하하기"(FlowerDecoZone, Guestbook)
             // 버튼을 누르면 OnClicked()에서 신부를 찾아 동일한 카메라 연출을 적용한다.
         }
@@ -187,13 +187,14 @@ namespace JSHWWedding
             return null;
         }
 
-        static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight, float camHeight)
+        // tagName: 이름표(overrideName)가 대화창 화자 이름과 다를 때(예: "신랑\n김형원") 지정
+        static void AttachTalkTo(string npcName, string label, string mode, float buttonHeight, float camHeight, string tagName = null)
         {
             // 이미 부착돼 있으면 스킵
             foreach (var z in FindObjectsByType<InteractionZone>(FindObjectsSortMode.None))
                 if (z.action == ZoneAction.Talk && z.talkName == npcName) return;
 
-            Transform target = FindNpcByName(npcName);
+            Transform target = FindNpcByName(tagName ?? npcName);
             if (target == null) { Debug.LogWarning($"[InteractionZone] NPC '{npcName}' 못 찾음 → '{label}' 버튼 생략"); return; }
 
             var zone = target.gameObject.AddComponent<InteractionZone>();
