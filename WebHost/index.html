@@ -381,7 +381,7 @@
 
     <!-- 방명록 / 사진앨범 / 메뉴(도움말·미니맵·방명록) 오버레이 -->
     <script type="module">
-      import { mountGuestbook } from "./assets/js/guestbook.js";
+      import { mountGuestbook, startGuestbookSync } from "./assets/js/guestbook.js";
       import { subscribeWreaths, addWreath } from "./assets/js/wreaths.js";
       import { addRsvp } from "./assets/js/rsvp.js";
 
@@ -429,6 +429,8 @@
       function pushWreathCount() {
         if (wreathList) sendUnity("SetWreathCount", String(Math.min(wreathList.length, WREATH_SLOTS)));
       }
+      // 방명록도 미리 실시간 구독 — 방명록 창을 열 때 기다림 없이 바로 목록 표시(화환과 같은 Firestore 연결 사용)
+      startGuestbookSync();
       subscribeWreaths(function (list) {
         wreathList = list;
         pushWreathCount();

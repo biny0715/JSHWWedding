@@ -3,7 +3,7 @@
 // lockedName 을 주면(유니티 예식장) 이름칸 자동입력 + 수정불가.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc
+  getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import {
   getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
@@ -25,17 +25,42 @@ const COL = "guestbook";
 const PAGE = 5;
 const MAX_NAME = 30, MAX_MSG = 300;
 
+function toEntry(d) {
+  const x = d.data({ serverTimestamps: "estimate" });   // 방금 쓴 글도 시간이 바로 보이게
+  return {
+    id: d.id,
+    name: x.name || "",
+    message: x.message || "",
+    at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate() : null,
+  };
+}
+
 export async function fetchEntries() {
   const snap = await getDocs(query(collection(db, COL), orderBy("createdAt", "desc")));
-  return snap.docs.map((d) => {
-    const x = d.data();
-    return {
-      id: d.id,
-      name: x.name || "",
-      message: x.message || "",
-      at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate() : null,
-    };
-  });
+  return snap.docs.map(toEntry);
+}
+
+// ===== 미리 받아두기(실시간 구독) — 예식장에서 방명록 창을 열기 전에 목록을 준비해 둔다 =====
+// startGuestbookSync() 를 한 번 부르면 이후 목록이 바뀔 때마다 cache 가 갱신되고, 마운트된 위젯이 다시 그린다.
+// 부르지 않은 페이지(청첩장 등)는 기존처럼 창을 열 때 한 번 받아온다.
+let cache = null;            // 마지막으로 받은 목록(null = 아직 없음)
+let syncing = false;
+const cacheListeners = new Set();
+export function startGuestbookSync() {
+  if (syncing) return;
+  syncing = true;
+  onSnapshot(
+    query(collection(db, COL), orderBy("createdAt", "desc")),
+    (snap) => {
+      cache = snap.docs.map(toEntry);
+      cacheListeners.forEach((fn) => fn());
+    },
+    (err) => {
+      console.error("[guestbook] 구독 실패 — 창을 열 때 직접 불러오기로 대체", err);
+      syncing = false;
+      cacheListeners.forEach((fn) => fn());   // 첫 목록을 기다리던 위젯이 직접 불러오도록
+    }
+  );
 }
 
 export async function addEntry(name, message) {
@@ -128,19 +153,31 @@ export function mountGuestbook(root, opts = {}) {
     nextB.disabled = page >= totalPages() - 1;
   }
 
-  async function reload(toFirst) {
-    listEl.innerHTML = '<li class="gb-empty">불러오는 중…</li>';
-    try {
-      entries = await fetchEntries();
-    } catch (e) {
-      console.error("[guestbook] load failed", e);
-      listEl.innerHTML = '<li class="gb-empty">목록을 불러오지 못했어요.</li>';
-      return;
-    }
+  function show(list, toFirst) {
+    entries = list;
     if (toFirst) page = 0;
     if (page > totalPages() - 1) page = totalPages() - 1;
     renderList();
   }
+
+  // 받아둔 목록(cache)이 있으면 기다림 없이 즉시 표시. 구독 중이면 갱신은 구독이 알아서 반영하고,
+  // 구독이 없으면 화면은 이전 목록을 유지한 채 뒤에서 새로 받아 바꾼다("불러오는 중…"은 처음 한 번만).
+  async function reload(toFirst) {
+    if (cache) show(cache, toFirst);
+    else if (!entries.length) listEl.innerHTML = '<li class="gb-empty">불러오는 중…</li>';
+    else show(entries, toFirst);
+    if (syncing) return;                 // 구독이 첫 목록/갱신을 cacheListeners 로 전달
+    try {
+      cache = await fetchEntries();
+    } catch (e) {
+      console.error("[guestbook] load failed", e);
+      if (!entries.length) listEl.innerHTML = '<li class="gb-empty">목록을 불러오지 못했어요.</li>';
+      return;
+    }
+    show(cache, toFirst);
+  }
+  // 구독 갱신 → 열려 있는 목록 다시 그림(페이지 유지). 구독이 실패해 끊겼으면 직접 불러오기.
+  cacheListeners.add(() => { if (cache) show(cache, false); else if (!syncing) reload(false); });
 
   listEl.addEventListener("click", (e) => {
     const x = e.target.closest(".gb-x");
