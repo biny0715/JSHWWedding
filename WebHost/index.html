@@ -8,8 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>운림제 모바일 예식장 · 형원 ♥ 지수</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <link rel="stylesheet" href="assets/css/venue.css">
+    <link rel="stylesheet" href="TemplateData/style.css?v=20261003">
+    <!-- ?v= : 예전 캐시 무효화용 버전(배포 스크립트의 Cache-Control: no-cache 와 함께 사용) -->
+    <link rel="stylesheet" href="assets/css/venue.css?v=20261003">
   </head>
 
   <body>
@@ -376,14 +377,14 @@
     </script>
 
     <!-- 로비 오버레이 UI 로직 -->
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/venue.js"></script>
+    <script src="assets/js/config.js?v=20261003"></script>
+    <script src="assets/js/venue.js?v=20261003"></script>
 
     <!-- 방명록 / 사진앨범 / 메뉴(도움말·미니맵·방명록) 오버레이 -->
     <script type="module">
-      import { mountGuestbook, startGuestbookSync } from "./assets/js/guestbook.js";
-      import { subscribeWreaths, addWreath } from "./assets/js/wreaths.js";
-      import { addRsvp } from "./assets/js/rsvp.js";
+      import { mountGuestbook, startGuestbookSync } from "./assets/js/guestbook.js?v=20261003";
+      import { subscribeWreaths, addWreath } from "./assets/js/wreaths.js?v=20261003";
+      import { addRsvp } from "./assets/js/rsvp.js?v=20261003";
 
       var gbModal = document.getElementById("gb-modal");
       var albumModal = document.getElementById("album-modal");
@@ -812,7 +813,7 @@
         var goal = (d.goal | 0) || (d.total | 0);
         var remain = Math.max(0, goal - (d.found | 0));
         document.getElementById("pickup-sub").textContent =
-          remain > 0 ? goal + "개까지 " + remain + "개 남았어요" : goal + "개를 모두 찾았다! 비니에게 가자 ✨";
+          remain > 0 ? goal + "개까지 " + remain + "개 남았어요" : (d.found | 0) + "개를 찾았다! 비니에게 가자 ✨";   // 목표 이후 더 주워도 실제 찾은 개수
         pickupToast.hidden = false;
         if (pickupTimer) clearTimeout(pickupTimer);
         pickupTimer = setTimeout(function () { pickupToast.hidden = true; }, 2800);
@@ -842,7 +843,7 @@
         questHudState = d;
         if (!d.state || d.state === "hidden") { questHud.hidden = true; return; }
         if (d.state === "complete") {
-          questHudTitle.textContent = ((d.goal | 0) || (d.total | 0)) + "개 찾았다!";
+          questHudTitle.textContent = (d.found | 0) + "개 찾았다!";   // 목표(3) 이후 더 찾으면 그 개수 그대로
           questHudCount.textContent = "비니에게 가자 ✨";
         } else {
           questHudTitle.textContent = (d.total | 0) + "개 중 " + ((d.goal | 0) || (d.total | 0)) + "개를 찾아라";
@@ -856,7 +857,7 @@
         var npc = (window.WEDDING && window.WEDDING.npc) || {};
         var d = questHudState, goal = (d.goal | 0) || (d.total | 0);
         document.getElementById("hint-progress").textContent =
-          d.state === "complete" ? goal + "개를 모두 찾았어요! 비니에게 가 보세요 ✨"
+          d.state === "complete" ? (d.found | 0) + "개를 찾았어요! 비니에게 가 보세요 ✨"
                                  : "찾은 물건 " + (d.found | 0) + " / " + goal + " 개 (전체 " + (d.total | 0) + "개 중 " + goal + "개만 찾으면 성공)";
         document.getElementById("hint-list").innerHTML = (npc.questHintSpots || []).map(function (t) {
           return "<li>" + String(t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }) + "</li>";

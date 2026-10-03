@@ -15,10 +15,15 @@
 #   .\deploy-r2.ps1 -Web         # 웹 레이어 배포 (index.html + assets/)
 #   .\deploy-r2.ps1 -DryRun      # 미리보기 (-Web 과 조합 가능)
 #   .\deploy-r2.ps1 -Web -DryRun
+#   .\deploy-r2.ps1 -Force       # 변경 여부와 무관하게 전부 다시 업로드(캐시 헤더를 기존 파일에도 붙일 때)
+#
+# 캐시: 모든 파일을 Cache-Control: no-cache 로 올린다 → 브라우저가 매번 서버에 변경 여부를 확인(안 바뀌면 304,
+#       재다운로드 없음). 헤더가 없으면 Safari 가 예전 웹 파일을 추정 캐시로 계속 써서 새 빌드와 어긋난다.
 
 param(
     [switch]$Web,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
@@ -40,7 +45,8 @@ if (-not $rclone) {
     exit 1
 }
 
-$flags = @('--progress', '--transfers', '16', '--checkers', '16')
+$flags = @('--progress', '--transfers', '16', '--checkers', '16', '--header-upload', 'Cache-Control: no-cache')
+if ($Force) { $flags += '--ignore-times' }
 if ($DryRun) { $flags += '--dry-run' }
 if ($DryRun) { Write-Host '[DRY-RUN] 실제 업로드는 하지 않습니다.' -ForegroundColor Yellow }
 Write-Host "rclone : $rclone"
