@@ -89,13 +89,22 @@ namespace JSHWWedding
 
         // 플레이어 캐릭터(내 캐릭터 + 다른 하객)의 렌더러를 꺼서 NPC 뷰가 가려지지 않게 한다.
         // 렌더링만 로컬로 끄는 것이라 다른 사람 화면에는 영향 없음. NPC(PlayerClickToMove 없음)는 대상 아님.
-        // 이름표(월드 TMP)도 MeshRenderer 라 함께 숨겨진다.
+        // 닉네임 이름표(PlayerNameTag)는 캐릭터 자식이 아닌 독립 오브젝트라 따로 찾아 함께 숨긴다.
         void HidePlayers()
         {
             hiddenRenderers.Clear();
             foreach (var move in FindObjectsByType<PlayerClickToMove>(FindObjectsSortMode.None))
+            {
                 foreach (var r in move.GetComponentsInChildren<Renderer>())
-                    if (r != null && r.enabled) { r.enabled = false; hiddenRenderers.Add(r); }
+                    Hide(r);
+                var tag = move.GetComponentInChildren<PlayerNameTag>();
+                if (tag != null) Hide(tag.TagRenderer);
+            }
+        }
+
+        void Hide(Renderer r)
+        {
+            if (r != null && r.enabled) { r.enabled = false; hiddenRenderers.Add(r); }
         }
 
         void ShowPlayers()

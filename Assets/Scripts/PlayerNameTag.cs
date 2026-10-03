@@ -31,6 +31,9 @@ namespace JSHWWedding
         private Transform tagTf;
         private Camera cam;
 
+        /// <summary>이름표 렌더러(독립 오브젝트라 캐릭터 자식 렌더러 검색에 안 잡힘). 생성 전이면 null.</summary>
+        public Renderer TagRenderer => tagTf != null ? tagTf.GetComponent<Renderer>() : null;
+
         private void Start()
         {
             string playerName;
