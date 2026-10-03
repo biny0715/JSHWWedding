@@ -31,8 +31,9 @@ namespace JSHWWedding
         private Transform tagTf;
         private Camera cam;
 
-        /// <summary>이름표 렌더러(독립 오브젝트라 캐릭터 자식 렌더러 검색에 안 잡힘). 생성 전이면 null.</summary>
-        public Renderer TagRenderer => tagTf != null ? tagTf.GetComponent<Renderer>() : null;
+        /// <summary>이름표 렌더러 전부(독립 오브젝트라 캐릭터 자식 렌더러 검색에 안 잡힘). 생성 전이면 빈 배열.
+        /// 한글은 TMP 폴백 폰트로 그려져 자식 TMP_SubMesh 렌더러에 있으므로 본체만 끄면 글자가 남는다 → 자식까지 포함.</summary>
+        public Renderer[] TagRenderers => tagTf != null ? tagTf.GetComponentsInChildren<Renderer>() : new Renderer[0];
 
         private void Start()
         {

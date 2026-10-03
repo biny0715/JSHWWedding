@@ -27,7 +27,7 @@ namespace JSHWWedding
         int focusFrame;
         Vector3 lockPos;
         Quaternion lockRot;
-        // 대화 중 숨긴 플레이어 렌더러(내 캐릭터+다른 하객, 로컬 화면만) — 종료 시 복원
+        // 대화 중 숨긴 렌더러(내 캐릭터 + 내 이름표, 로컬 화면만) — 종료 시 복원
         readonly List<Renderer> hiddenRenderers = new List<Renderer>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -72,7 +72,7 @@ namespace JSHWWedding
             if (brain != null) brain.enabled = false;   // 브레인 정지 → 블렌드 없이 즉시 컷
             cam.transform.SetPositionAndRotation(lockPos, lockRot);
             if (focused) ShowPlayers();                 // 연속 Focus 방어(이전 숨김분 복원 후 다시 숨김)
-            HidePlayers();                              // 카메라를 가리는 캐릭터들 숨김
+            HidePlayers();                              // 카메라를 가리는 내 캐릭터(+이름표) 숨김
             focused = true;
             Active = true;
             focusFrame = Time.frameCount;
@@ -87,7 +87,7 @@ namespace JSHWWedding
             if (brain != null) brain.enabled = true;     // 게임플레이 카메라로 복귀
         }
 
-        // 플레이어 캐릭터(내 캐릭터 + 다른 하객)의 렌더러를 꺼서 NPC 뷰가 가려지지 않게 한다.
+        // 내 캐릭터의 렌더러를 꺼서 NPC 뷰가 가려지지 않게 한다(다른 하객은 그대로 보임).
         // 렌더링만 로컬로 끄는 것이라 다른 사람 화면에는 영향 없음. NPC(PlayerClickToMove 없음)는 대상 아님.
         // 닉네임 이름표(PlayerNameTag)는 캐릭터 자식이 아닌 독립 오브젝트라 따로 찾아 함께 숨긴다.
         void HidePlayers()
@@ -95,10 +95,12 @@ namespace JSHWWedding
             hiddenRenderers.Clear();
             foreach (var move in FindObjectsByType<PlayerClickToMove>(FindObjectsSortMode.None))
             {
+                if (move.photonView == null || !move.photonView.IsMine) continue;   // 내 캐릭터만
                 foreach (var r in move.GetComponentsInChildren<Renderer>())
                     Hide(r);
                 var tag = move.GetComponentInChildren<PlayerNameTag>();
-                if (tag != null) Hide(tag.TagRenderer);
+                if (tag != null)
+                    foreach (var r in tag.TagRenderers) Hide(r);
             }
         }
 
