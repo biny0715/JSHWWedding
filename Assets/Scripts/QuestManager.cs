@@ -19,8 +19,8 @@ namespace JSHWWedding
         public int Found { get; private set; }
         /// <summary>전체 물건 수(씬의 활성 PickupZone 개수).</summary>
         public int Total { get; private set; }
-        /// <summary>완료에 필요한 개수 — 전체(6개) 중 이만큼만 찾으면 성공(난이도 조정).</summary>
-        public const int RequiredCount = 4;
+        /// <summary>완료에 필요한 개수 — 전체(6개) 중 이만큼만 찾으면 성공(난이도 조정: 4 -> 3).</summary>
+        public const int RequiredCount = 3;
         /// <summary>목표 개수(물건이 RequiredCount 보다 적게 배치됐으면 전체 개수).</summary>
         public int Goal => Mathf.Min(RequiredCount, Total);
 

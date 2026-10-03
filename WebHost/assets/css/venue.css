@@ -435,18 +435,27 @@ html, body {
 .npc-choice--no { background: #fff; border: 1px solid #e8dfce; color: #7d756b; }
 
 /* =========================================================
-   퀘스트 HUD — 우측 상단(유니티 미니맵 아래). 미니맵과 겹치면 top 만 조절.
-   pointer-events:none → 터치는 Unity 캔버스로 통과(이동 조작 방해 없음)
+   퀘스트 HUD — 화면 상단 중앙(좌상단 메뉴 버튼과 우상단 미니맵 사이). 누르면 힌트 창이 열린다.
    ========================================================= */
 .quest-hud {
-  position: fixed; top: calc(env(safe-area-inset-top, 0px) + 150px); right: 12px; z-index: 30;
-  pointer-events: none;
+  position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 50%; transform: translateX(-50%); z-index: 30;
+  pointer-events: auto; cursor: pointer; border: none; font: inherit; -webkit-tap-highlight-color: transparent;
+  max-width: calc(100vw - 200px); min-width: 120px;
   background: rgba(251, 247, 239, .93); border-radius: 12px; padding: 8px 14px;
   box-shadow: 0 4px 14px rgba(0,0,0,.18); text-align: center;
 }
 .quest-hud[hidden] { display: none; }
-.quest-hud-title { margin: 0; font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .75rem; color: var(--sea-dk); }
-.quest-hud-count { margin: 3px 0 0; font-size: .92rem; font-weight: 700; color: var(--ink); }
+.quest-hud:active { transform: translateX(-50%) scale(.97); }
+.quest-hud-tip { display: block; margin: 3px 0 0; font-size: .66rem; color: #9b9089; white-space: nowrap; }
+
+/* 보물찾기 힌트 창 본문 */
+.hint-progress { margin: 0 0 10px; text-align: center; font-weight: 700; font-size: .92rem; color: var(--sea-dk); }
+.hint-lead { margin: 0 0 10px; text-align: center; font-size: .88rem; color: var(--ink); }
+.hint-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hint-list li { background: var(--sand); border-radius: 12px; padding: 10px 14px; font-size: .95rem; color: var(--ink); }
+.hint-list li::before { content: "🎁 "; }
+.quest-hud-title { display: block; margin: 0; font-family: "HS활공명조", sans-serif; font-weight: 700; font-size: .75rem; color: var(--sea-dk); }
+.quest-hud-count { display: block; margin: 3px 0 0; font-size: .92rem; font-weight: 700; color: var(--ink); }
 
 /* =========================================================
    물건 획득 팝업 — 그림 + "'OOO'을 획득했습니다 / 남은 물건 n개"

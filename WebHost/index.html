@@ -218,10 +218,22 @@
         </div>
       </div>
 
-      <!-- 퀘스트 HUD (우측 상단, 유니티 미니맵 아래) — 표시는 유니티(QuestManager)가 WeddingQuestHud 로 제어 -->
-      <div class="quest-hud" id="quest-hud" hidden>
-        <p class="quest-hud-title" id="quest-hud-title">물건을 찾아라</p>
-        <p class="quest-hud-count" id="quest-hud-count">0 / 0 개</p>
+      <!-- 퀘스트 HUD (화면 상단 중앙) — 표시는 유니티(QuestManager)가 WeddingQuestHud 로 제어. 누르면 힌트 창 -->
+      <button class="quest-hud" id="quest-hud" type="button" hidden>
+        <span class="quest-hud-title" id="quest-hud-title">물건을 찾아라</span>
+        <span class="quest-hud-count" id="quest-hud-count">0 / 0 개</span>
+        <span class="quest-hud-tip">💡 눌러서 힌트 보기</span>
+      </button>
+
+      <!-- 보물찾기 힌트 창 (퀘스트 HUD 를 누르면 열림, config.js 의 npc.questHintSpots 사용) -->
+      <div class="venue-modal" id="hint-modal" hidden>
+        <div class="venue-modal-card">
+          <button class="venue-modal-close" id="hint-close" type="button" aria-label="닫기">✕</button>
+          <h2 class="venue-modal-title">보물찾기 힌트</h2>
+          <p class="hint-progress" id="hint-progress"></p>
+          <p class="hint-lead">핑크색 선물상자를 찾아보세요! 아래 장소 근처에 숨어 있어요.</p>
+          <ul class="hint-list" id="hint-list"></ul>
+        </div>
       </div>
 
       <!-- 물건 획득 팝업 (그림 + "'OOO'을 획득했습니다 / 남은 물건 n개") — 탭하거나 잠시 후 자동 닫힘 -->
@@ -380,6 +392,7 @@
       var wreathModal = document.getElementById("wreath-modal");
       var giftModal = document.getElementById("gift-modal");
       var rsvpModal = document.getElementById("rsvp-modal");
+      var hintModal = document.getElementById("hint-modal");
       var gbWidget = null, albumDone = false, giftDone = false;
       // 유니티에 신호 보내기 (arg 는 선택 — SetWreathCount 처럼 값이 필요한 메서드용)
       function sendUnity(method, arg) {
@@ -391,7 +404,7 @@
       }
       function lockMove() { sendUnity("OnVenueOverlayOpened"); }      // 창 열림 → 이동 잠금
       function anyModalOpen() {
-        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden || !giftModal.hidden || !rsvpModal.hidden;
+        return !gbModal.hidden || !albumModal.hidden || !helpModal.hidden || !npcDialog.hidden || !wreathModal.hidden || !giftModal.hidden || !rsvpModal.hidden || !hintModal.hidden;
       }
 
       // 디바이스 식별자(localStorage) — 퀘스트 1회 제한·화환 기록용. 브라우저 데이터 삭제 시 재발급됨.
@@ -580,6 +593,7 @@
       var npcLines = [], npcIndex = 0, npcTyping = null, npcFullText = "";
       var npcOnEnd = "close";   // 마지막 줄 뒤 동작: "close" | "choice"(수락/거절) | "guestbook"(방명록 열기)
       var npcCfg = null;        // 현재 대화의 npc 설정(수락 버튼에서 재사용)
+      var npcSt = { accepted: false, found: 0, total: 0, goal: 0 };   // 마지막 유니티 퀘스트 상태(대사 토큰 치환용)
 
       var NPC_DEFAULT = {
         name: "비니", emoji: "🌊",
@@ -595,6 +609,15 @@
       function questDoneFlag() {
         try { return localStorage.getItem("jshw_quest_done") === "1"; } catch (e) { return false; }
       }
+      // 대사 목록 펼치기: "{hints}" 줄은 힌트 대사들로 바꾸고, 나머지는 {goal} 등 토큰 치환
+      function expandLines(lines, st) {
+        var out = [];
+        (lines || []).forEach(function (s) {
+          if (s === "{hints}") out = out.concat((npcCfg && npcCfg.questHints) || []);
+          else out.push(fillTokens(s, st));
+        });
+        return out;
+      }
       function fillTokens(s, st) {
         var remain = Math.max(0, (st.goal | 0) - (st.found | 0));
         return s.replace(/\{found\}/g, st.found | 0).replace(/\{total\}/g, st.total | 0)
@@ -603,14 +626,15 @@
 
       // 유니티 → 웹: 대화창 열기 (jslib OpenWeddingNpcDialog)
       window.OnOpenNpcDialog = function (name, mode, stateJson) {
-        gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true; giftModal.hidden = true;
+        gbModal.hidden = true; albumModal.hidden = true; helpModal.hidden = true; giftModal.hidden = true; hintModal.hidden = true;
         npcCfg = (window.WEDDING && window.WEDDING.npc) || NPC_DEFAULT;
         var st = { accepted: false, found: 0, total: 0, goal: 0 };
         try {
           var p = JSON.parse(stateJson || "{}");
           st.accepted = !!p.accepted; st.found = p.found | 0; st.total = p.total | 0;
-          st.goal = (p.goal | 0) || st.total;   // goal = 성공에 필요한 개수(6개 중 4개). 구버전 빌드면 전체 개수
+          st.goal = (p.goal | 0) || st.total;   // goal = 성공에 필요한 개수(유니티 RequiredCount). 구버전 빌드면 전체 개수
         } catch (e) {}
+        npcSt = st;
 
         npcNameEl.textContent = (name && String(name).trim()) || npcCfg.name || "비니";
         npcAvatarEl.textContent = npcCfg.emoji || NPC_DEFAULT.emoji;
@@ -661,6 +685,7 @@
       var wreathFormEl = document.getElementById("npc-wreath-form");
 
       function startNpc(lines, onEnd) {
+        lines = expandLines(lines, npcSt);
         npcLines = (lines && lines.length) ? lines : ["..."];
         npcOnEnd = onEnd || "close";
         npcIndex = 0;
@@ -808,9 +833,11 @@
       var questHud = document.getElementById("quest-hud");
       var questHudTitle = document.getElementById("quest-hud-title");
       var questHudCount = document.getElementById("quest-hud-count");
+      var questHudState = {};
       window.OnWeddingQuestHud = function (json) {
         var d = {};
         try { d = JSON.parse(json || "{}"); } catch (e) {}
+        questHudState = d;
         if (!d.state || d.state === "hidden") { questHud.hidden = true; return; }
         if (d.state === "complete") {
           questHudTitle.textContent = ((d.goal | 0) || (d.total | 0)) + "개 찾았다!";
@@ -821,6 +848,23 @@
         }
         questHud.hidden = false;
       };
+
+      // ===== 보물찾기 힌트 창 — 퀘스트 HUD 를 누르면 열림 =====
+      questHud.addEventListener("click", function () {
+        var npc = (window.WEDDING && window.WEDDING.npc) || {};
+        var d = questHudState, goal = (d.goal | 0) || (d.total | 0);
+        document.getElementById("hint-progress").textContent =
+          d.state === "complete" ? goal + "개를 모두 찾았어요! 비니에게 가 보세요 ✨"
+                                 : "찾은 물건 " + (d.found | 0) + " / " + goal + " 개 (전체 " + (d.total | 0) + "개 중 " + goal + "개만 찾으면 성공)";
+        document.getElementById("hint-list").innerHTML = (npc.questHintSpots || []).map(function (t) {
+          return "<li>" + String(t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }) + "</li>";
+        }).join("");
+        hintModal.hidden = false;
+        lockMove();
+      });
+      document.getElementById("hint-close").addEventListener("click", function () {
+        hintModal.hidden = true; notifyIfAllClosed();
+      });
 
       // ===== 우상단 햄버거 메뉴 =====
       var menuBtn = document.getElementById("venue-menu-btn");
