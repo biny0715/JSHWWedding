@@ -54,3 +54,6 @@
 *.dylib  binary
 *.wasm   binary
 *.data   binary
+
+# 바이너리 직렬화된 Unity 에셋(지형) — 위의 *.asset text 규칙에서 제외(줄바꿈 변환 시 파일 손상)
+"Assets/Stylized Water 3/_Demo/DemoAssets/Terrain/SW3 Demo Island.asset" binary
