@@ -1,5 +1,5 @@
 // PickupZone.cs
-// 보물찾기 대상 지점. "빈 GameObject" 에 붙여 맵 곳곳에 숨겨 배치한다(눈에 안 보이는 탐색형).
+// 보물찾기 대상 지점. "빈 GameObject" 에 붙여 맵 곳곳에 숨겨 배치한다. 자식 선물상자(visual)는 수락 후~줍기 전에만 보인다.
 // 퀘스트 수락 후, 플레이어가 activateRadius(인스펙터에서 조절) 안으로 오면 '줍기' 버튼이 뜨고
 // 누르면 QuestManager 카운트가 올라간다. 진행도는 씬을 떠나면 리셋(메모리 유지).
 // 버튼 UI 방식은 InteractionZone(월드 캔버스 빌보드 버튼)과 동일.
@@ -20,6 +20,12 @@ namespace JSHWWedding
         public string buttonLabel = "줍기";
         public Color buttonColor = new Color(0.357f, 0.624f, 0.702f, 1f); // sea-dk
 
+        [Header("보이는 물건(선물상자)")]
+        [Tooltip("퀘스트 수락 후~줍기 전까지만 보이는 3D 모델(자식). 비우면 표시 없음")]
+        public GameObject visual;
+        [Tooltip("눈에 띄게 천천히 회전(도/초)")]
+        public float spinSpeed = 45f;
+
         Transform player;
         Camera cam;
         GameObject ui;
@@ -28,8 +34,15 @@ namespace JSHWWedding
 
         void Update()
         {
-            if (picked) return;
             var qm = QuestManager.Instance;
+            // 선물상자: 수락 후 ~ 줍기 전까지만 표시
+            bool showVisual = !picked && qm != null && qm.Accepted;
+            if (visual != null)
+            {
+                if (visual.activeSelf != showVisual) visual.SetActive(showVisual);
+                if (showVisual) visual.transform.Rotate(0f, spinSpeed * Time.deltaTime, 0f, Space.World);
+            }
+            if (picked) return;
             // 퀘스트 수락 전에는 아무것도 안 보임(탐색은 수락 후부터)
             if (qm == null || !qm.Accepted) { SetShown(false); return; }
             if (cam == null) cam = Camera.main;
@@ -69,8 +82,10 @@ namespace JSHWWedding
             if (picked) return;
             picked = true;
             SetShown(false);
+            if (ui != null) Destroy(ui);   // 버튼 캔버스는 별도 루트 오브젝트라 함께 정리
             // GO 이름 = 아이템 키. 웹 config.js 의 questItems[키] 에서 표시 이름/그림을 찾아 획득 팝업을 띄운다.
             QuestManager.Instance?.OnPickedUp(name);
+            gameObject.SetActive(false);   // 주운 물건(존 + 자식 선물상자) 비활성화
         }
 
         void BuildUI()
