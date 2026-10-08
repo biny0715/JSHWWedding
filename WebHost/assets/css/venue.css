@@ -273,8 +273,31 @@ html, body {
   font-size: 1.2rem; color: var(--coral); margin: 2px 0 16px;
 }
 
-/* 사진 앨범 그리드 */
-#venue-album { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+/* 사진 앨범 — 옆으로 넘기는 슬라이더(모바일 청첩장 갤러리와 같은 방식) */
+.album-slider { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.album-track { display: flex; transition: transform .35s ease; touch-action: pan-y; }
+.album-slide { flex: 0 0 100%; min-width: 0; }
+.album-slide .album-item { border-radius: 0; }
+.album-slide img { -webkit-user-drag: none; pointer-events: none; }
+.album-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 38px; height: 38px; padding: 0; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,.85); color: var(--coral);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.15);
+}
+.album-nav[hidden] { display: none; }
+.album-nav::before {
+  content: ""; display: block; width: 9px; height: 9px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+}
+.album-nav.prev { left: 10px; } .album-nav.next { right: 10px; }
+.album-nav.prev::before { transform: rotate(135deg); margin-left: 3px; }
+.album-nav.next::before { transform: rotate(-45deg); margin-right: 3px; }
+.album-dots { display: flex; gap: 7px; justify-content: center; margin-top: 14px; }
+.album-dots[hidden] { display: none; }
+.album-dot { width: 8px; height: 8px; border-radius: 50%; background: #e4d8d0; border: none; padding: 0; cursor: pointer; }
+.album-dot.active { background: var(--coral); width: 20px; border-radius: 4px; }
 .album-item {
   aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden;
   background: repeating-linear-gradient(45deg, #f2eae6 0 12px, #eae0db 12px 24px);

@@ -472,17 +472,84 @@
         lockMove();   // 앨범 창이 실제로 열렸을 때만 이동 잠금(에디터/창 안 뜨면 안 잠겨 이동 가능)
       };
 
+      // 사진 앨범 — 모바일 청첩장 갤러리와 같은 방식: 옆으로 드래그(스와이프)하면 넘어감 + 좌우 버튼 + 점 표시
       function renderAlbum() {
         if (albumDone) return;
         var box = document.getElementById("venue-album");
         var photos = (window.WEDDING && window.WEDDING.gallery) || [];
         if (!photos.length) { box.innerHTML = '<p class="album-empty">사진 준비 중이에요 📷</p>'; albumDone = true; return; }
-        box.innerHTML = photos.map(function (p) {
-          return p.src
-            ? '<div class="album-item"><img src="' + p.src + '" alt="' + (p.alt || "") + '" loading="lazy"></div>'
-            : '<div class="album-item album-item--empty"><span>사진</span></div>';
-        }).join("");
+        box.innerHTML =
+          '<div class="album-slider">' +
+            '<div class="album-track">' + photos.map(function (p) {
+              return '<div class="album-slide">' + (p.src
+                ? '<div class="album-item"><img src="' + p.src + '" alt="' + (p.alt || "") + '" loading="lazy"></div>'
+                : '<div class="album-item album-item--empty"><span>사진</span></div>') + "</div>";
+            }).join("") + "</div>" +
+            '<button type="button" class="album-nav prev" aria-label="이전 사진"></button>' +
+            '<button type="button" class="album-nav next" aria-label="다음 사진"></button>' +
+          "</div>" +
+          '<div class="album-dots">' + photos.map(function (_, i) {
+            return '<button type="button" class="album-dot' + (i === 0 ? " active" : "") + '" data-i="' + i + '" aria-label="' + (i + 1) + '번 사진"></button>';
+          }).join("") + "</div>";
         albumDone = true;
+
+        var area = box.querySelector(".album-slider"), track = box.querySelector(".album-track");
+        var dots = box.querySelectorAll(".album-dot");
+        var idx = 0, n = photos.length;
+        if (n <= 1) {
+          box.querySelectorAll(".album-nav").forEach(function (b) { b.hidden = true; });
+          box.querySelector(".album-dots").hidden = true;
+        }
+        function setTrack(px, anim) {
+          track.style.transition = anim ? "transform .35s ease" : "none";
+          track.style.transform = "translateX(calc(" + (-idx * 100) + "% + " + px + "px))";
+        }
+        function go(i) {
+          idx = (i + n) % n;
+          setTrack(0, true);
+          dots.forEach(function (d, di) { d.classList.toggle("active", di === idx); });
+        }
+        box.querySelector(".album-nav.prev").addEventListener("click", function () { go(idx - 1); });
+        box.querySelector(".album-nav.next").addEventListener("click", function () { go(idx + 1); });
+        box.querySelector(".album-dots").addEventListener("click", function (e) {
+          var d = e.target.closest(".album-dot"); if (d) go(Number(d.getAttribute("data-i")));
+        });
+        // 터치 드래그: 손가락을 따라오다 놓으면 스냅. 가로로 확정되면 preventDefault 로 사파리 제스처를 막는다.
+        // 리스너는 움직이는 track 이 아니라 고정된 바깥 틀에 건다(iOS 사파리는 transform 으로 밀린 요소의
+        // 터치 영역을 원래 위치로 계산해, track 에 걸면 첫 사진에서만 드래그가 잡힘 — 청첩장과 같은 대응).
+        var x0 = null, y0 = null, dragging = false, horiz = false;
+        area.addEventListener("touchstart", function (e) {
+          x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dragging = true; horiz = false;
+        }, { passive: true });
+        area.addEventListener("touchmove", function (e) {
+          if (!dragging) return;
+          var dx = e.touches[0].clientX - x0, dy = e.touches[0].clientY - y0;
+          if (!horiz) {
+            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+            if (Math.abs(dy) > Math.abs(dx)) { dragging = false; return; }   // 세로 → 창 스크롤에 양보
+            horiz = true;
+          }
+          e.preventDefault();
+          setTrack(dx, false);
+        }, { passive: false });
+        area.addEventListener("touchend", function (e) {
+          if (!dragging) { x0 = null; y0 = null; return; }
+          dragging = false;
+          var dx = e.changedTouches[0].clientX - x0;
+          x0 = null; y0 = null;
+          if (horiz && Math.abs(dx) > area.clientWidth * 0.15) go(idx + (dx < 0 ? 1 : -1));
+          else go(idx);
+        });
+        area.addEventListener("touchcancel", function () { dragging = false; x0 = null; y0 = null; go(idx); });
+        // 데스크톱(마우스) 드래그도 같은 방식으로
+        var mx = null;
+        area.addEventListener("mousedown", function (e) { mx = e.clientX; e.preventDefault(); });
+        window.addEventListener("mousemove", function (e) { if (mx !== null) setTrack(e.clientX - mx, false); });
+        window.addEventListener("mouseup", function (e) {
+          if (mx === null) return;
+          var dx = e.clientX - mx; mx = null;
+          if (Math.abs(dx) > area.clientWidth * 0.15) go(idx + (dx < 0 ? 1 : -1)); else go(idx);
+        });
       }
 
       // ===== 마음 전하기(계좌) — 메뉴에서 열림 =====
