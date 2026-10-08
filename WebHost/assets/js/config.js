@@ -107,13 +107,16 @@ window.WEDDING = {
   bridePhoto: { src: "", alt: "신부 사진", ratio: "1 / 1" },
 
   gallery: [
-    { src: "assets/images/gallery-9732.jpg", alt: "웨딩 사진 1", ratio: "2 / 3" },
-    { src: "assets/images/gallery-9905.jpg", alt: "웨딩 사진 2", ratio: "2 / 3" },
-    { src: "assets/images/gallery-10043.jpg", alt: "웨딩 사진 3", ratio: "2 / 3" },
-    { src: "assets/images/gallery-10833.jpg", alt: "웨딩 사진 4", ratio: "2 / 3" },
-    { src: "assets/images/gallery-11382.jpg", alt: "웨딩 사진 5", ratio: "2 / 3" },
-    { src: "assets/images/gallery-11636.jpg", alt: "웨딩 사진 6", ratio: "2 / 3" },
-    { src: "assets/images/gallery-11755.jpg", alt: "웨딩 사진 7", ratio: "2 / 3" },
+    // 순서(2026-10-09): 메인 → 10833 → 11755 → 11636 → 9732 → 11921 → 11989 → 12020
+    // 프로필용 사진(9905 신랑, 10043 신부)은 갤러리에서 제외(프로필에는 유지)
+    { src: "assets/images/main-10853.jpg", alt: "웨딩 사진 1", ratio: "2 / 3" },
+    { src: "assets/images/gallery-10833.jpg", alt: "웨딩 사진 2", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11755.jpg", alt: "웨딩 사진 3", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11636.jpg", alt: "웨딩 사진 4", ratio: "2 / 3" },
+    { src: "assets/images/gallery-9732.jpg", alt: "웨딩 사진 5", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11921.jpg", alt: "웨딩 사진 6", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11989.jpg", alt: "웨딩 사진 7", ratio: "2 / 3" },
+    { src: "assets/images/gallery-12020.jpg", alt: "웨딩 사진 8", ratio: "2 / 3" },
   ],
 
   /* ---- 모바일 예식장(Unity) 외부 호스트 주소 ----
