@@ -52,9 +52,19 @@ namespace Photon.Pun.Demo.PunBasics
                 return;
             }
 
-            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            // 스폰 위치(고정 지점 + NavMesh 표면 보정)는 GameManager.GetSpawnPosition 책임.
+            // 여기서는 에이전트를 NavMesh 에 붙이는 Warp 만 한다 — 이미 NavMesh 위라 이동량은 ~0 이어야 정상.
+            // 가까운 범위(1m)에서만 붙인다(멀리 찾아 위치를 크게 옮기지 않음).
+            Vector3 spawned = transform.position;
+            if (NavMesh.SamplePosition(spawned, out NavMeshHit hit, 1f, NavMesh.AllAreas))
             {
                 agent.Warp(hit.position);
+                Vector3 d = hit.position - spawned;
+                float moved = d.magnitude;
+                if (moved > 0.5f)
+                    Debug.LogWarning($"[Spawn] Start Warp 보정이 큼: {spawned:F2} -> {hit.position:F2} ({moved:F2}m)");
+                else
+                    Debug.Log($"[Spawn] Start Warp: {spawned:F2} -> {hit.position:F2} ({moved:F2}m)");
             }
             else
             {

@@ -29,7 +29,14 @@ namespace Photon.Pun.Demo.PunBasics
 		#region Public Fields
 
 		static public GameManager Instance;
+		[Tooltip("고정 스폰 지점(입구). 접속 순서/ActorNumber 와 무관하게 모든 플레이어가 이 위치에서 생성된다.")]
 		public Vector3 SpawnPosition;
+
+		[Header("스폰")]
+		[Tooltip("스폰 지점을 NavMesh 표면에 맞출 때 허용하는 최대 거리(m). 이보다 멀면 보정하지 않고 지정 좌표 그대로 사용.")]
+		[SerializeField] private float navMeshSnapDistance = 0.5f;
+		[Tooltip("스폰 진단 로그 출력")]
+		[SerializeField] private bool spawnDebugLog = true;
 
 		#endregion
 
@@ -100,8 +107,16 @@ namespace Photon.Pun.Demo.PunBasics
         public static object[] CustomInstantiationData;   // 부위 11개 int (없으면 커스텀 없음)
 
         // 성별 프리팹 + 커스텀 룩(instantiationData)으로 스폰. 모든 클라이언트가 InstantiationData 를 읽어 동일 조립.
+        // 위치는 로컬 플레이어(소유자)만 한 번 계산해 Instantiate 로 보낸다 → 다른 클라이언트는 그 값을 그대로 받는다.
+        private bool localSpawnRequested;   // Start/OnJoinedRoom 중복 스폰 방지(같은 GameManager 수명 안)
         private void SpawnPlayer(Vector3 spawnPos)
         {
+            if (localSpawnRequested || PlayerManager.LocalPlayerInstance != null)
+            {
+                Debug.LogWarning("[Spawn] 로컬 플레이어가 이미 있어 스폰을 건너뜀");
+                return;
+            }
+            localSpawnRequested = true;
             string prefabName = !string.IsNullOrEmpty(CustomPrefabName)
                 ? CustomPrefabName
                 : (playerPrefab != null ? playerPrefab.name : "FemaleCharacter");
@@ -109,22 +124,25 @@ namespace Photon.Pun.Demo.PunBasics
             PhotonNetwork.Instantiate(prefabName, spawnPos, Quaternion.identity, 0, data);
         }
 
+        // 고정 스폰: 접속 순서/ActorNumber 와 무관하게 항상 SpawnPosition 한 곳(입퇴장 반복으로 ActorNumber 가 커져도 동일).
+        // NavMesh 표면에 맞추는 보정만 하며, 보정 거리가 navMeshSnapDistance 를 넘으면 지정 좌표를 그대로 쓴다.
         private Vector3 GetSpawnPosition()
         {
-	        Vector3 basePos = SpawnPosition;
+	        var r = ComputeSpawnPosition(SpawnPosition, navMeshSnapDistance);
+	        if (spawnDebugLog)
+		        Debug.Log($"[Spawn] actor={PhotonNetwork.LocalPlayer?.ActorNumber} base={SpawnPosition:F2} " +
+		                  $"navmesh={r.position:F2} snapDelta={(r.position - SpawnPosition).magnitude:F2}m{(r.fallback ? " FALLBACK(NavMesh 없음 → 지정 좌표 그대로)" : "")}");
+	        return r.position;
+        }
 
-	        // 플레이어 수에 따라 살짝 분산
-	        float offset = PhotonNetwork.LocalPlayer.ActorNumber * 1.5f;
+        public struct SpawnResult { public Vector3 position; public bool fallback; }
 
-	        Vector3 spawnPos = basePos + new Vector3(offset, 0f, offset);
-
-	        // NavMesh 위로 스냅
-	        if (UnityEngine.AI.NavMesh.SamplePosition(spawnPos, out UnityEngine.AI.NavMeshHit hit, 5f, UnityEngine.AI.NavMesh.AllAreas))
-	        {
-		        return hit.position;
-	        }
-
-	        return basePos;
+        /// <summary>스폰 위치 계산(순수 함수 — 에디터 검증에서도 호출). 입력은 기준 좌표뿐이라 누가 몇 번째로 들어와도 같은 결과.</summary>
+        public static SpawnResult ComputeSpawnPosition(Vector3 basePos, float snapDistance)
+        {
+	        if (UnityEngine.AI.NavMesh.SamplePosition(basePos, out UnityEngine.AI.NavMeshHit hit, Mathf.Max(0.01f, snapDistance), UnityEngine.AI.NavMesh.AllAreas))
+		        return new SpawnResult { position = hit.position };
+	        return new SpawnResult { position = basePos, fallback = true };
         }
         /// <summary>
         /// Called when a Photon Player got connected. We need to then load a bigger scene.
