@@ -16,9 +16,9 @@ public static class NpcCamPreview
         Directory.CreateDirectory("Temp/npccam");
         // 바라보는 높이(headHeight) 후보 비교 + 현재 적용값(cur)
         Shot("신랑\n김형원", "groom", 0f, InteractionZone.GroomCamDistance,
-             ("h045", 0.45f), ("h055", 0.55f), ("h060", 0.60f), ("cur", InteractionZone.GroomCamHeight));
+             ("prev", 0.55f), ("cur", InteractionZone.GroomCamHeight));
         Shot("신부\n박지수", "bride", 0.45f, InteractionZone.BrideCamDistance,
-             ("h045", 0.45f), ("h055", 0.55f), ("h060", 0.60f), ("cur", InteractionZone.BrideCamHeight));
+             ("prev", 0.55f), ("cur", InteractionZone.BrideCamHeight));
     }
 
     static void Shot(string tagName, string file, float extraRaise, float dist, params (string tag, float headHeight)[] variants)

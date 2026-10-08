@@ -21,8 +21,8 @@ namespace JSHWWedding
         public const float BrideCamDistance = 2.625f;
         public const float GroomCamDistance = 2f;
         // 대화 카메라가 바라보는 높이(m, NPC 발밑 기준) — 높일수록 캐릭터가 화면 아래로 내려가 하단 여백이 줄어듦
-        public const float BrideCamHeight = 0.55f;   // 0.45 -> 0.55: 하단 여백 축소(2026-10-08)
-        public const float GroomCamHeight = 0.55f;
+        public const float BrideCamHeight = 0.75f;   // 0.45 -> 0.55 -> 0.75: 하단 여백 축소(2026-10-08)
+        public const float GroomCamHeight = 0.65f;   // 0.45 -> 0.55 -> 0.65
 
         [Header("동작")]
         public ZoneAction action = ZoneAction.Guestbook;
