@@ -562,14 +562,19 @@
           else moveTo(pos);
         });
         area.addEventListener("touchcancel", function () { dragging = false; x0 = null; y0 = null; moveTo(pos); hideNavLater(); });
-        // 데스크톱(마우스): 움직이면 화살표 표시, 드래그로 넘김
+        // 데스크톱(마우스): 사진의 왼쪽/오른쪽 끝(각 25%)에 포인터를 올리면 화살표 표시, 벗어나면 2초 후 숨김.
+        // 드래그로도 넘길 수 있음(드래그 중엔 표시).
         var mx = null;
-        area.addEventListener("mousemove", function () { showNav(); hideNavLater(); });
-        area.addEventListener("mousedown", function (e) { if (e.target.closest(".album-nav")) return; mx = e.clientX; snap(); e.preventDefault(); });
+        area.addEventListener("mousemove", function (e) {
+          var r = area.getBoundingClientRect(), x = e.clientX - r.left, zone = r.width * 0.25;
+          if (mx !== null || x < zone || x > r.width - zone || e.target.closest("button")) showNav(); else hideNavLater();
+        });
+        area.addEventListener("mouseleave", function () { if (mx === null) hideNavLater(); });
+        area.addEventListener("mousedown", function (e) { if (e.target.closest(".album-nav")) return; mx = e.clientX; snap(); showNav(); e.preventDefault(); });
         window.addEventListener("mousemove", function (e) { if (mx !== null) setTrack(e.clientX - mx, false); });
         window.addEventListener("mouseup", function (e) {
           if (mx === null) return;
-          var dx = e.clientX - mx; mx = null;
+          var dx = e.clientX - mx; mx = null; hideNavLater();
           if (Math.abs(dx) > area.clientWidth * 0.15) moveTo(pos + (dx < 0 ? 1 : -1)); else moveTo(pos);
         });
       }
