@@ -486,7 +486,7 @@
           '<div class="album-slider">' +
             '<div class="album-track">' + slides.map(function (p) {
               return '<div class="album-slide">' + (p.src
-                ? '<div class="album-item"><img src="' + p.src + '" alt="' + (p.alt || "") + '" loading="lazy"></div>'
+                ? '<div class="album-item"><img src="' + p.src + '" alt="' + (p.alt || "") + '" decoding="async"></div>'
                 : '<div class="album-item album-item--empty"><span>사진</span></div>') + "</div>";
             }).join("") + "</div>" +
             '<button type="button" class="album-nav prev" aria-label="이전 사진"></button>' +
@@ -496,6 +496,11 @@
             return '<button type="button" class="album-dot' + (i === 0 ? " active" : "") + '" data-i="' + i + '" aria-label="' + (i + 1) + '번 사진"></button>';
           }).join("") + "</div>";
         albumDone = true;
+        // 깜빡임 방지: 넘길 때 처음 불러오지 않도록(lazy 제거) 앨범을 열 때 전부 받아 두고,
+        // 화면용 디코딩까지 미리 끝내 둔다(복제 슬라이드 포함 — 같은 주소라 한 번만 받음).
+        box.querySelectorAll(".album-slide img").forEach(function (im) {
+          if (im.decode) im.decode().catch(function () {});
+        });
 
         var area = box.querySelector(".album-slider"), track = box.querySelector(".album-track");
         var dots = box.querySelectorAll(".album-dot");

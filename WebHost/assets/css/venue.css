@@ -275,8 +275,9 @@ html, body {
 
 /* 사진 앨범 — 옆으로 넘기는 슬라이더(모바일 청첩장 갤러리와 같은 방식) */
 .album-slider { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-.album-track { display: flex; transition: transform .35s ease; touch-action: pan-y; }
-.album-slide { flex: 0 0 100%; min-width: 0; }
+.album-track { display: flex; transition: transform .35s ease; touch-action: pan-y; will-change: transform; }
+/* GPU 레이어 고정 — iOS 사파리에서 큰 이미지를 옆으로 밀 때 생기는 깜빡임 방지 */
+.album-slide { flex: 0 0 100%; min-width: 0; transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 .album-slide .album-item { border-radius: 0; }
 .album-slide img { -webkit-user-drag: none; pointer-events: none; }
 .album-nav {
