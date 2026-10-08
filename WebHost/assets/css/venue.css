@@ -292,6 +292,9 @@ html, body {
   border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
 }
 .album-nav.prev { left: 10px; } .album-nav.next { right: 10px; }
+/* 화살표: 평소엔 숨김(누를 수도 없음) → 터치/드래그 중 .nav-on 이면 보임, 손 뗀 뒤 2초 후 사라짐 */
+.album-nav { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+.album-slider.nav-on .album-nav { opacity: 1; pointer-events: auto; }
 .album-nav.prev::before { transform: rotate(135deg); margin-left: 3px; }
 .album-nav.next::before { transform: rotate(-45deg); margin-right: 3px; }
 .album-dots { display: flex; gap: 7px; justify-content: center; margin-top: 14px; }
