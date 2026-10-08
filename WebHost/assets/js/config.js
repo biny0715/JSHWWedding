@@ -21,6 +21,7 @@ window.WEDDING = {
     role: "신부",
     desc: "누구보다 따뜻한 마음을 가진", // TODO: 소개 문구 다듬기
     phone: "010-0000-0000", // TODO
+    avatarImg: "assets/images/avatar-bride.jpg",   // 신부 NPC(축하하기) 대화창 프로필 사진
   },
 
   date: {
@@ -106,11 +107,14 @@ window.WEDDING = {
   bridePhoto: { src: "", alt: "신부 사진", ratio: "1 / 1" },
 
   gallery: [
-    { src: "", alt: "웨딩 사진 1", ratio: "3 / 4" },
-    { src: "", alt: "웨딩 사진 2", ratio: "3 / 4" },
-    { src: "", alt: "웨딩 사진 3", ratio: "3 / 4" },
-    { src: "", alt: "웨딩 사진 4", ratio: "3 / 4" },
-    { src: "", alt: "웨딩 사진 5", ratio: "3 / 4" },
+    { src: "assets/images/gallery-2.jpg", alt: "웨딩 사진 1", ratio: "2 / 3" },
+    { src: "assets/images/gallery-9732.jpg", alt: "웨딩 사진 2", ratio: "2 / 3" },
+    { src: "assets/images/gallery-9905.jpg", alt: "웨딩 사진 3", ratio: "2 / 3" },
+    { src: "assets/images/gallery-10043.jpg", alt: "웨딩 사진 4", ratio: "2 / 3" },
+    { src: "assets/images/gallery-10833.jpg", alt: "웨딩 사진 5", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11382.jpg", alt: "웨딩 사진 6", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11636.jpg", alt: "웨딩 사진 7", ratio: "2 / 3" },
+    { src: "assets/images/gallery-11755.jpg", alt: "웨딩 사진 8", ratio: "2 / 3" },
   ],
 
   /* ---- 모바일 예식장(Unity) 외부 호스트 주소 ----
@@ -223,6 +227,7 @@ window.WEDDING = {
   hw: {
     name: "형원",
     emoji: "🤵",
+    avatarImg: "assets/images/avatar-groom.jpg",   // 대화창 프로필 사진(없으면 emoji)
     lines: [
       "안녕하세요, 신랑 김형원이라고 합니다.",
       "축하해주러 오셔서 감사합니다.",

@@ -658,6 +658,13 @@
       var npcTextEl = document.getElementById("npc-text");
       var npcNameEl = document.getElementById("npc-name");
       var npcAvatarEl = document.getElementById("npc-avatar");
+      // 대화창 프로필: 사진(img)이 있으면 원형 사진, 없으면 이모지
+      function setNpcAvatar(emoji, img) {
+        npcAvatarEl.textContent = "";
+        npcAvatarEl.classList.toggle("has-photo", !!img);
+        if (img) { var im = new Image(); im.src = img; im.alt = ""; npcAvatarEl.appendChild(im); }
+        else npcAvatarEl.textContent = emoji || "";
+      }
       var npcNextEl = document.getElementById("npc-next");
       var npcChoicesEl = document.getElementById("npc-choices");
       var npcLines = [], npcIndex = 0, npcTyping = null, npcFullText = "";
@@ -707,7 +714,7 @@
         npcSt = st;
 
         npcNameEl.textContent = (name && String(name).trim()) || npcCfg.name || "비니";
-        npcAvatarEl.textContent = npcCfg.emoji || NPC_DEFAULT.emoji;
+        setNpcAvatar(npcCfg.emoji || NPC_DEFAULT.emoji);
 
         // 총 자리는 31(관리자 예시 1개 포함)이지만 예시분은 이미 채워진 것으로 치므로
         // 하객에게 안내되는 "남은 자리"는 31-작성수 그대로 계산하면 자연히 최대 30부터 시작한다.
@@ -717,14 +724,14 @@
         if (mode === "help") {
           // 지니(도움말 NPC): 퀘스트 없이 안내 대사만 읽고 닫힘. 화자 이름은 name("지니"), 아바타는 지니 이모지.
           var jiny = (window.WEDDING && window.WEDDING.jiny) || {};
-          npcAvatarEl.textContent = jiny.emoji || "🎀";
+          setNpcAvatar(jiny.emoji || "🎀");
           lines = (jiny.lines && jiny.lines.length) ? jiny.lines : ["안녕! 나는 신부의 동생 지니라고 해~"];
           onEnd = "close";
         }
         else if (mode === "groom") {
           // 형원(신랑 NPC): 인사 대사 후 '참석 여부 확인' 창이 열림.
           var hw = (window.WEDDING && window.WEDDING.hw) || {};
-          npcAvatarEl.textContent = hw.emoji || "🤵";
+          setNpcAvatar(hw.emoji || "🤵", hw.avatarImg);
           lines = (hw.lines && hw.lines.length) ? hw.lines : ["안녕하세요, 신랑 김형원이라고 합니다."];
           onEnd = "rsvp";
         }
@@ -733,6 +740,7 @@
           // 축하하기(신부 앞) 대화의 화자는 '신부' — 말 건 사람 이름이 아니라 신부 이름으로 표시.
           // (유니티는 이 모드에서 플레이어 닉을 넘기지만, 방명록 작성자는 아래 guestbook 분기에서 savedName() 으로 따로 채움)
           npcNameEl.textContent = (window.WEDDING && window.WEDDING.bride && window.WEDDING.bride.short) || "신부";
+          setNpcAvatar("👰", window.WEDDING && window.WEDDING.bride && window.WEDDING.bride.avatarImg);   // 신부 프로필 사진
         }
         else if (questDoneFlag()) lines = npcCfg.questDone;                               // 이미 완료한 기기 → 재도전 불가
         else if (!st.accepted) {                                                          // 제안 → 수락/거절
