@@ -20,6 +20,9 @@ namespace JSHWWedding
         // 대화 카메라 거리(m) — 신부(축하하기) 3.5 -> 2.625(25%↓), 신랑(말걸기) 기본 4 -> 2(50%↓)
         public const float BrideCamDistance = 2.625f;
         public const float GroomCamDistance = 2f;
+        // 대화 카메라가 바라보는 높이(m, NPC 발밑 기준) — 높일수록 캐릭터가 화면 아래로 내려가 하단 여백이 줄어듦
+        public const float BrideCamHeight = 0.55f;   // 0.45 -> 0.55: 하단 여백 축소(2026-10-08)
+        public const float GroomCamHeight = 0.55f;
 
         [Header("동작")]
         public ZoneAction action = ZoneAction.Guestbook;
@@ -109,7 +112,7 @@ namespace JSHWWedding
             {
                 // "축하하기"(FlowerDecoZone) — 신부 앞 축하 대화이므로 말걸기와 동일하게 신부 정면 즉시컷.
                 var bride = FindNpcByName("신부\n박지수");
-                if (bride != null) NpcDialogCamera.Focus(bride, 0.45f, 0.45f, BrideCamDistance);   // 위에서 내려보는 각도
+                if (bride != null) NpcDialogCamera.Focus(bride, BrideCamHeight, 0.45f, BrideCamDistance);   // 위에서 내려보는 각도
                 VenueWeb.OpenNpcDialog(nick, "celebrate");   // 축하 감사 대화 → 방명록
             }
             else if (action == ZoneAction.Album) VenueWeb.OpenAlbum();
@@ -180,7 +183,7 @@ namespace JSHWWedding
         {
             AttachTalkTo("비니", "말걸기", "npc", 4f, 1f);
             AttachTalkTo("지니", "도움말", "help", 3f, 0.45f);
-            AttachTalkTo("형원", "말걸기", "groom", 3f, 0.45f, "신랑\n김형원", GroomCamDistance);   // 신랑 — 지니와 같은 버튼 높이, 카메라는 더 가깝게(이름표는 2줄)
+            AttachTalkTo("형원", "말걸기", "groom", 3f, GroomCamHeight, "신랑\n김형원", GroomCamDistance);   // 신랑 — 지니와 같은 버튼 높이, 카메라는 더 가깝게(이름표는 2줄)
             // 신부는 별도 "말걸기" 버튼을 만들지 않음 — 기존 "축하하기"(FlowerDecoZone, Guestbook)
             // 버튼을 누르면 OnClicked()에서 신부를 찾아 동일한 카메라 연출을 적용한다.
         }
