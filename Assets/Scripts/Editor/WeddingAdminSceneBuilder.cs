@@ -2,7 +2,8 @@
 // Wedding 씬을 복제해 관리자(아이패드) 관전용 WeddingAdmin 씬을 만든다. 여러 번 실행해도 같은 결과(멱등) —
 // Wedding 씬을 고친 뒤 다시 실행하면 관리자 씬도 최신 Wedding 기준으로 다시 만들어진다.
 //  - 하객 전용 요소 제거: 내 캐릭터 생성(GameManager), 플레이어 추적/인트로 카메라, 미니맵, 상호작용·퀘스트 존 등
-//  - Main Camera 는 고정 시점(스폰 지역을 내려다보는 위치), 루트 AdminViewer 에 관전 접속기만 (UI·조작 없음)
+//  - Main Camera 는 고정 시점(스폰 지역을 내려다보는 위치)에서 시작
+//  - 루트 AdminViewer: 관전 접속기 + 카메라 이동 UI(오른쪽 위 아이콘으로 켜고 끄는 조이스틱·▲▼)
 using System.Collections.Generic;
 using System.Linq;
 using JSHWWedding.Admin;
@@ -67,7 +68,12 @@ public static class WeddingAdminSceneBuilder
         cam.farClipPlane = Mathf.Max(cam.farClipPlane, 2000f);
         camGo.transform.SetPositionAndRotation(CamPosition, Quaternion.Euler(CamEuler));
 
-        new GameObject("AdminViewer").AddComponent<AdminViewerNetwork>();
+        var viewer = new GameObject("AdminViewer");
+        viewer.AddComponent<AdminViewerNetwork>();
+        var controls = viewer.AddComponent<AdminCameraControls>();
+        var so = new SerializedObject(controls);
+        so.FindProperty("cam").objectReferenceValue = camGo.transform;
+        so.ApplyModifiedPropertiesWithoutUndo();
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
