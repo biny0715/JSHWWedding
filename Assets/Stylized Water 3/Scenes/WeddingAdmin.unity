@@ -2985,6 +2985,51 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6744206056932736986, guid: 81fe5f65dec9c3047bc6febfc864405b, type: 3}
   m_PrefabInstance: {fileID: 1267617166}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &96561358
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 96561360}
+  - component: {fileID: 96561359}
+  m_Layer: 0
+  m_Name: AdminViewer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &96561359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96561358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd80510fa07e847f7852f460a79b34bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.Admin.AdminViewerNetwork
+  retrySeconds: 5
+--- !u!4 &96561360
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96561358}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &96759683
 GameObject:
   m_ObjectHideFlags: 0
@@ -69489,66 +69534,6 @@ Transform:
   - {fileID: 757962073}
   m_Father: {fileID: 875571866}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1778521400
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1778521403}
-  - component: {fileID: 1778521402}
-  - component: {fileID: 1778521401}
-  m_Layer: 0
-  m_Name: AdminViewer
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1778521401
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1778521400}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90dbd748a3dd2400c9d28d21f7dc08d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.Admin.AdminOverlay
-  cam: {fileID: 1860642358}
-  nameHeight: 2.3
---- !u!114 &1778521402
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1778521400}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd80510fa07e847f7852f460a79b34bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.Admin.AdminViewerNetwork
-  retrySeconds: 5
---- !u!4 &1778521403
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1778521400}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1778631183 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6032592186458885567, guid: 1c42a7f1a0bfd1b4a9dbd263d1626673, type: 3}
@@ -73307,7 +73292,6 @@ GameObject:
   - component: {fileID: 1860642356}
   - component: {fileID: 1860642355}
   - component: {fileID: 1860642357}
-  - component: {fileID: 1860642358}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -73374,8 +73358,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860642353}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.3115058, y: 0, z: 0, w: 0.95024425}
-  m_LocalPosition: {x: 534.2, y: 396, z: -177}
+  m_LocalRotation: {x: 0.21059613, y: 0.11909452, z: -0.025857955, w: 0.969947}
+  m_LocalPosition: {x: 527.3058, y: 58.4274, z: 297.80646}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -73426,30 +73410,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &1860642358
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1860642353}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1578c351bd4794e5d9100459ed3d5589, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JSHWWedding.Admin.AdminCameraController
-  homePivot: {x: 542.4372, y: 35.070045, z: 341.411}
-  homeDistance: 22
-  homeYaw: 45
-  homePitch: 45
-  minDistance: 5
-  maxDistance: 60
-  minPitch: 20
-  maxPitch: 89
-  boundsRadius: 80
-  panSpeed: 1.2
-  rotateSpeed: 0.25
-  followSharpness: 5
 --- !u!1001 &1860696803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88201,4 +88161,4 @@ SceneRoots:
   - {fileID: 504216398}
   - {fileID: 1156932858}
   - {fileID: 473147078}
-  - {fileID: 1778521403}
+  - {fileID: 96561360}

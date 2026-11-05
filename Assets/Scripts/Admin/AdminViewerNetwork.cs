@@ -21,6 +21,13 @@ namespace JSHWWedding.Admin
 
         public static string Status { get; private set; } = "준비 중";
 
+        static void SetStatus(string s)
+        {
+            if (Status == s) return;
+            Status = s;
+            Debug.Log("[AdminViewer] " + s);   // 화면 UI 가 없으므로 상태는 로그로 확인(Xcode 콘솔)
+        }
+
         void Awake()
         {
             Screen.sleepTimeout = SleepTimeout.NeverSleep;   // 아이패드를 켜둔 채 관전
@@ -37,7 +44,7 @@ namespace JSHWWedding.Admin
                 if (PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom) Join();
                 return;
             }
-            Status = "서버 연결 중…";
+            SetStatus("서버 연결 중…");
             PhotonNetwork.NickName = "관리자";
             PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { AdminPropKey, true } });
             PhotonNetwork.ConnectUsingSettings();
@@ -46,7 +53,7 @@ namespace JSHWWedding.Admin
 
         void Join()
         {
-            Status = "예식장 찾는 중…";
+            if (!Status.Contains("기다리는 중")) SetStatus("예식장 찾는 중…");   // 대기 중 5초마다 재시도할 땐 로그 반복 안 함
             PhotonNetwork.JoinRandomRoom();
         }
 
@@ -54,7 +61,7 @@ namespace JSHWWedding.Admin
 
         public override void OnJoinRandomFailed(short returnCode, string message)
         {
-            Status = "아직 입장한 하객이 없어요 — 기다리는 중";
+            SetStatus("아직 입장한 하객이 없어요 — 기다리는 중");
             StartCoroutine(RetryJoin());
         }
 
@@ -64,11 +71,11 @@ namespace JSHWWedding.Admin
             if (PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom) Join();
         }
 
-        public override void OnJoinedRoom() => Status = "관전 중";
+        public override void OnJoinedRoom() => SetStatus("관전 중");
 
         public override void OnDisconnected(DisconnectCause cause)
         {
-            Status = $"연결 끊김({cause}) — 다시 연결 중";
+            SetStatus($"연결 끊김({cause}) — 다시 연결 중");
             StartCoroutine(RetryConnect());
         }
 
