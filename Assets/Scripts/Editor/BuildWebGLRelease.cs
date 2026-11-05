@@ -20,7 +20,8 @@ public static class BuildWebGLRelease
             scenes = scenes,
             locationPathName = OutputPath,
             target = BuildTarget.WebGL,
-            options = BuildOptions.None,
+            // 캐시 재사용 시 변경된 에셋(예: NavMesh)이 반영되지 않은 채 몇 초 만에 끝나는 경우가 있어 항상 클린 빌드
+            options = BuildOptions.CleanBuildCache,
         });
         var s = report.summary;
         Debug.Log($"[BuildWebGLRelease] {s.result} | {s.totalErrors} errors | {s.totalSize / (1024 * 1024)} MB | {s.totalTime} | {OutputPath}");
