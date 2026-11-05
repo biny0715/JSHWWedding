@@ -57,3 +57,5 @@
 
 # 바이너리 직렬화된 Unity 에셋(지형) — 위의 *.asset text 규칙에서 제외(줄바꿈 변환 시 파일 손상)
 "Assets/Stylized Water 3/_Demo/DemoAssets/Terrain/SW3 Demo Island.asset" binary
+# Wedding 씬 NavMesh 데이터도 바이너리 — 텍스트 처리 시 CR 바이트가 지워져 로드 실패(맥 빌드에서 발견)
+"Assets/Stylized Water 3/Scenes/Wedding/NavMesh-NavMeshSurface.asset" binary
