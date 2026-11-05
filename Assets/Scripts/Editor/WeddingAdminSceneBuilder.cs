@@ -32,8 +32,14 @@ public static class WeddingAdminSceneBuilder
             return;
         }
 
-        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(Dst) != null) AssetDatabase.DeleteAsset(Dst);
-        if (!AssetDatabase.CopyAsset(Src, Dst)) { Debug.LogError("[AdminScene] 씬 복제 실패"); return; }
+        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(Dst) != null)
+        {
+            // 덮어쓰기 — 지우고 새로 만들면 .meta GUID 가 바뀌어 빌드 프로필 등의 씬 참조가 끊긴다
+            if (EditorSceneManager.GetActiveScene().path == Dst) EditorSceneManager.OpenScene(Src, OpenSceneMode.Single);
+            System.IO.File.Copy(Src, Dst, true);
+            AssetDatabase.ImportAsset(Dst, ImportAssetOptions.ForceUpdate);
+        }
+        else if (!AssetDatabase.CopyAsset(Src, Dst)) { Debug.LogError("[AdminScene] 씬 복제 실패"); return; }
         var scene = EditorSceneManager.OpenScene(Dst, OpenSceneMode.Single);
         var roots = scene.GetRootGameObjects();
 

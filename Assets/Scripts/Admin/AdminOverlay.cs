@@ -94,7 +94,7 @@ namespace JSHWWedding.Admin
             GUILayout.Label("모바일 예식장 · 관리자 뷰", label);
             GUILayout.Label($"{AdminViewerNetwork.Status}   하객 {guests.Count}명", label);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("전체 보기", button)) cam.ResetView();
+            if (GUILayout.Button("처음 위치", button)) cam.ResetView();
             if (GUILayout.Button(cam.IsTopDown ? "비스듬히" : "위에서", button)) cam.SetTopDown(!cam.IsTopDown);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();

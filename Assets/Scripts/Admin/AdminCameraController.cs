@@ -10,18 +10,18 @@ namespace JSHWWedding.Admin
     [RequireComponent(typeof(Camera))]
     public class AdminCameraController : MonoBehaviour
     {
-        [Header("처음 보기(전체 보기)")]
+        [Header("처음 보기 — 하객 스폰 지역을 가까이")]
         public Vector3 homePivot;
-        public float homeDistance = 70f;
-        public float homeYaw = 0f;
-        public float homePitch = 55f;
+        public float homeDistance = 22f;
+        public float homeYaw = 45f;      // 하객 카메라(FollowOffset -5.94,4,-5.94)와 같은 방향에서 바라봄
+        public float homePitch = 45f;
 
         [Header("제한")]
-        public float minDistance = 6f;
-        public float maxDistance = 260f;
+        public float minDistance = 5f;
+        public float maxDistance = 60f;
         public float minPitch = 20f;
         public float maxPitch = 89f;
-        public float boundsRadius = 300f;   // homePivot 기준 이동 가능 반경(m)
+        public float boundsRadius = 80f;    // homePivot(스폰) 기준 이동 가능 반경(m) — 섬 전체가 아니라 예식 공간 위주
 
         [Header("감도")]
         public float panSpeed = 1.2f;
@@ -50,7 +50,7 @@ namespace JSHWWedding.Admin
         public void Follow(Transform target)
         {
             follow = target;
-            if (target != null) distance = Mathf.Min(distance, 30f);   // 따라갈 땐 가까이
+            if (target != null) distance = Mathf.Min(distance, 14f);   // 따라갈 땐 더 가까이
         }
 
         void LateUpdate()
