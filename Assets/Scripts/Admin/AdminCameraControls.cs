@@ -1,8 +1,9 @@
 // AdminCameraControls.cs
 // 관리자 뷰(아이패드) 카메라 이동 UI — 실행 시 코드로 UI 를 만든다(별도 프리팹·폰트 불필요).
 //  - 오른쪽 위 작은 원형 아이콘: 누를 때마다 조작 UI 켜기/끄기 (기본 꺼짐 → 평소엔 고정 화면)
-//  - 왼쪽 아래 조이스틱: 카메라를 앞뒤·좌우로 이동(카메라가 보는 방향 기준, 높이·각도는 유지)
-//  - 오른쪽 아래 ▲/▼ 버튼: 누르고 있는 동안 카메라를 위/아래로 이동
+//  - 왼쪽 아래 이동 조이스틱: 카메라를 앞뒤·좌우로 이동(카메라가 보는 방향 기준, 높이·각도는 유지)
+//  - 오른쪽 아래 회전 조이스틱: 좌우 = 방향 돌리기, 위아래 = 고개 들기/숙이기
+//  - 회전 조이스틱 왼쪽 ▲/▼ 버튼: 누르고 있는 동안 카메라를 위/아래로 이동
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,15 +18,20 @@ namespace JSHWWedding.Admin
         [SerializeField] float minHeightOffset = -20f; // 시작 높이 기준 내려갈 수 있는 한계(m) — 땅 아래로 안 가게
         [SerializeField] float maxHeightOffset = 80f;
         [SerializeField] float maxDistance = 150f;     // 시작 위치에서 수평으로 벗어날 수 있는 거리(m)
+        [SerializeField] float yawSpeed = 70f;         // 회전 조이스틱 끝까지 밀었을 때 °/s
+        [SerializeField] float pitchSpeed = 45f;
+        [SerializeField] float minPitch = 5f;          // 거의 수평
+        [SerializeField] float maxPitch = 85f;         // 거의 수직으로 내려다봄
 
         static readonly Color Dark = new Color(0f, 0f, 0f, 0.35f);
         static readonly Color Light = new Color(1f, 1f, 1f, 0.85f);
         static readonly Color Accent = new Color(0.85f, 0.5f, 0.6f, 0.9f);
 
         Vector3 startPos;
+        float yaw, pitch;
         GameObject controls;
         Image toggleBg;
-        AdminJoystick joystick;
+        AdminJoystick joystick, lookStick;
         AdminHoldButton upButton, downButton;
         RectTransform safeArea;
         Rect lastSafe;
@@ -35,6 +41,8 @@ namespace JSHWWedding.Admin
             if (cam == null && Camera.main != null) cam = Camera.main.transform;
             if (cam == null) { Debug.LogError("[AdminCameraControls] 카메라 없음"); enabled = false; return; }
             startPos = cam.position;
+            yaw = cam.eulerAngles.y;
+            pitch = Mathf.DeltaAngle(0f, cam.eulerAngles.x);
             if (EventSystem.current == null)
                 new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
             BuildUI();
@@ -44,6 +52,14 @@ namespace JSHWWedding.Admin
         {
             if (Screen.safeArea != lastSafe) ApplySafeArea();
             if (!controls.activeSelf) return;
+
+            Vector2 look = lookStick.Value;
+            if (look.sqrMagnitude > 0.0001f)
+            {
+                yaw += look.x * yawSpeed * Time.deltaTime;
+                pitch = Mathf.Clamp(pitch - look.y * pitchSpeed * Time.deltaTime, minPitch, maxPitch);   // 위로 밀면 고개 들기
+                cam.rotation = Quaternion.Euler(pitch, yaw, 0f);
+            }
 
             Vector2 j = joystick.Value;
             float v = (upButton.Pressed ? 1f : 0f) - (downButton.Pressed ? 1f : 0f);
@@ -98,19 +114,26 @@ namespace JSHWWedding.Admin
             var cr = (RectTransform)controls.transform;
             cr.anchorMin = Vector2.zero; cr.anchorMax = Vector2.one; cr.offsetMin = cr.offsetMax = Vector2.zero;
 
-            // 왼쪽 아래 조이스틱
-            var baseRt = NewImage("JoystickBase", cr, circle, Dark, new Vector2(0, 0), new Vector2(150, 150), 200);
-            var handle = NewImage("Handle", baseRt, circle, Light, new Vector2(0.5f, 0.5f), Vector2.zero, 84);
-            handle.GetComponent<Image>().raycastTarget = false;
-            joystick = baseRt.gameObject.AddComponent<AdminJoystick>();
-            joystick.handle = handle;
-            joystick.radius = 100f;
+            // 왼쪽 아래 이동 조이스틱 / 오른쪽 아래 회전 조이스틱(손잡이 색으로 구분)
+            joystick = Joystick("MoveStick", cr, circle, new Vector2(0, 0), new Vector2(150, 150), Light);
+            lookStick = Joystick("LookStick", cr, circle, new Vector2(1, 0), new Vector2(-150, 150), Accent);
 
-            // 오른쪽 아래 ▲ / ▼
-            upButton = HoldButton("Up", cr, circle, tri, new Vector2(-90, 230), false);
-            downButton = HoldButton("Down", cr, circle, tri, new Vector2(-90, 100), true);
+            // 회전 조이스틱 왼쪽 ▲ / ▼
+            upButton = HoldButton("Up", cr, circle, tri, new Vector2(-330, 210), false);
+            downButton = HoldButton("Down", cr, circle, tri, new Vector2(-330, 90), true);
 
             controls.SetActive(false);   // 기본은 꺼둠 — 아이콘을 눌러야 보임
+        }
+
+        AdminJoystick Joystick(string name, RectTransform parent, Sprite circle, Vector2 anchor, Vector2 pos, Color handleColor)
+        {
+            var baseRt = NewImage(name, parent, circle, Dark, anchor, pos, 200);
+            var handle = NewImage("Handle", baseRt, circle, handleColor, new Vector2(0.5f, 0.5f), Vector2.zero, 84);
+            handle.GetComponent<Image>().raycastTarget = false;
+            var js = baseRt.gameObject.AddComponent<AdminJoystick>();
+            js.handle = handle;
+            js.radius = 100f;
+            return js;
         }
 
         AdminHoldButton HoldButton(string name, RectTransform parent, Sprite circle, Sprite tri, Vector2 pos, bool flip)
