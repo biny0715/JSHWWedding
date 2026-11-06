@@ -25,9 +25,11 @@ namespace JSHWWedding.EditorTools
             string buildDir = Directory.Exists(outputPath) ? outputPath : Path.GetDirectoryName(outputPath);
             if (string.IsNullOrEmpty(buildDir)) return;
 
-            string mcpDir = Path.Combine(buildDir, "StreamingAssets", "realvirtual-MCP");
-            if (Directory.Exists(mcpDir))
+            // StreamingAssets 가 복사되는 위치: WebGL = StreamingAssets/, iOS(Xcode 프로젝트) = Data/Raw/
+            foreach (string saDir in new[] { Path.Combine(buildDir, "StreamingAssets"), Path.Combine(buildDir, "Data", "Raw") })
             {
+                string mcpDir = Path.Combine(saDir, "realvirtual-MCP");
+                if (!Directory.Exists(mcpDir)) continue;
                 try
                 {
                     Directory.Delete(mcpDir, true);
@@ -36,15 +38,14 @@ namespace JSHWWedding.EditorTools
                 catch (System.Exception e)
                 {
                     Debug.LogWarning($"[StripMcpFromBuild] 제거 실패: {e.Message}");
-                    return;
+                    continue;
                 }
-            }
 
-            // StreamingAssets 가 비었으면 빈 폴더도 정리
-            string saDir = Path.Combine(buildDir, "StreamingAssets");
-            if (Directory.Exists(saDir) && Directory.GetFileSystemEntries(saDir).Length == 0)
-            {
-                try { Directory.Delete(saDir); } catch { /* 무시 */ }
+                // WebGL StreamingAssets 가 비었으면 빈 폴더도 정리 (iOS Data/Raw 는 Xcode 프로젝트가 참조하므로 남겨둠)
+                if (saDir.EndsWith("StreamingAssets") && Directory.GetFileSystemEntries(saDir).Length == 0)
+                {
+                    try { Directory.Delete(saDir); } catch { /* 무시 */ }
+                }
             }
         }
     }
