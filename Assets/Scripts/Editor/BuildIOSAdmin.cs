@@ -26,6 +26,7 @@ public static class BuildIOSAdmin
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, BundleId);
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.iOS, ScriptingImplementation.IL2CPP);
         PlayerSettings.iOS.targetDevice = iOSTargetDevice.iPadOnly;
+        PlayerSettings.iOS.targetOSVersionString = "15.0";   // Xcode 27 SDK 최소 지원 버전(13.0 은 빌드 에러)
         PlayerSettings.iOS.appleEnableAutomaticSigning = true;   // Team 은 Xcode 에서 선택
 
         PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
